@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CRM VENTAS - IMAGEN TV</title>
+  <style>
+    :root {
+      --orange: #F15A24;
+      --orange-dark: #D94B1C;
+      --navy: #172033;
+      --gray: #667085;
+      --light: #F6F7F9;
+      --white: #FFFFFF;
+      --border: #E4E7EC;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, #f8f9fb 0%, #eef1f5 100%);
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+    }
+
+    .container {
+      width: min(1050px, 100%);
+    }
+
+    .header {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 34px 38px;
+      box-shadow: 0 12px 35px rgba(23, 32, 51, .08);
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .brand-mark {
+      width: 12px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--orange);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: -.8px;
+    }
+
+    .subtitle {
+      margin: 8px 0 0 26px;
+      color: var(--gray);
+      font-size: 16px;
+    }
+
+    .section-title {
+      margin: 30px 4px 16px;
+      font-size: 19px;
+      font-weight: 700;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      text-decoration: none;
+      color: inherit;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 30px;
+      min-height: 210px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 10px 28px rgba(23, 32, 51, .07);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--orange);
+      box-shadow: 0 16px 36px rgba(23, 32, 51, .13);
+    }
+
+    .icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+      background: #FFF1EB;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+    }
+
+    .card h2 {
+      margin: 20px 0 7px;
+      font-size: 24px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--gray);
+      line-height: 1.45;
+    }
+
+    .arrow {
+      margin-top: 22px;
+      color: var(--orange);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .footer {
+      text-align: center;
+      color: #98A2B3;
+      font-size: 13px;
+      margin-top: 24px;
+    }
+
+    @media (max-width: 700px) {
+      .cards { grid-template-columns: 1fr; }
+      .header { padding: 26px; }
+      .card { min-height: 190px; }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="container">
+
+    <section class="header">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <h1>CRM VENTAS - IMAGEN TV</h1>
+      </div>
+      <div class="subtitle">Portal de gestión comercial</div>
+    </section>
+
+    <div class="section-title">📝 FORMULARIOS</div>
+
+    <section class="cards">
+
+      <!-- ALTA DE CLIENTE -->
+      <a
+        class="card"
+        href="https://www.notion.so/3f7425efb9e08059adeeec0891f1dbf8?pvs=106"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="icon">➕</div>
+          <h2>Alta de cliente</h2>
+          <p>Registrar un nuevo cliente en el CRM.</p>
+        </div>
+        <div class="arrow">Abrir formulario →</div>
+      </a>
+
+      <!-- REGISTRAR SEGUIMIENTO -->
+      <!-- Reemplaza PEGA_AQUI_EL_LINK por el enlace del formulario SEGUIMIENTOS -->
+      <a
+        class="card"
+        href="https://www.notion.so/3f8425efb9e080459c6fd64ebe9cac69?pvs=106"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <div>
+          <div class="icon">📋</div>
+          <h2>Registrar seguimiento</h2>
+          <p>Registrar llamadas, reuniones, propuestas y próximos contactos.</p>
+        </div>
+        <div class="arrow">Abrir formulario →</div>
+      </a>
+
+    </section>
+
+    <div class="footer">
+      CRM VENTAS · IMAGEN TV
+    </div>
+
+  </main>
+</body>
+</html>
