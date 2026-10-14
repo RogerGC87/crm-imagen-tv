@@ -146,7 +146,7 @@
     <section>
       <div class="section-title">Formularios</div>
       <div class="cards">
-        <a class="card red" href="https://forms.fillout.com/t/hSpAXq69fLus" target="_blank" rel="noopener">
+        <a class="card red" href="https://forms.fillout.com/t/hSpAXq69fLus" target="_blank" rel="noopener" onclick="openFillout(event, this.href)">
           <div class="icon">👤</div>
           <div>
             <div class="eyebrow">Formulario</div>
@@ -155,7 +155,7 @@
           </div>
           <div class="arrow">›</div>
         </a>
-        <a class="card blue" href="https://forms.fillout.com/t/n17f6KbKDVus" target="_blank" rel="noopener">
+        <a class="card blue" href="https://forms.fillout.com/t/n17f6KbKDVus" target="_blank" rel="noopener" onclick="openFillout(event, this.href)">
           <div class="icon">📋</div>
           <div>
             <div class="eyebrow">Formulario</div>
@@ -211,6 +211,23 @@
     userPill.textContent = user?.email || 'Usuario autorizado';
     markActivity();
     startInactivityTimer();
+  }
+
+  function openFillout(event, baseUrl) {
+    event.preventDefault();
+
+    supabaseClient.auth.getUser().then(({ data }) => {
+      const email = data?.user?.email;
+
+      if (!email) {
+        showLogin('Tu sesión no está disponible. Inicia sesión nuevamente.');
+        return;
+      }
+
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const formUrl = baseUrl + separator + 'email=' + encodeURIComponent(email);
+      window.open(formUrl, '_blank', 'noopener');
+    });
   }
 
   function markActivity() {
