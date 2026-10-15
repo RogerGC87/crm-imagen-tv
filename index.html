@@ -209,9 +209,30 @@
     return url.toString();
   }
 
-  function openFillout(event, baseUrl, includeDirection, user) {
+  async function openFillout(event, baseUrl, includeDirection) {
+    // Prevent the original link from opening without the user's parameters.
     event.preventDefault();
-    window.open(buildFilloutUrl(baseUrl, user, includeDirection), '_blank', 'noopener');
+
+    // Open the tab synchronously during the click so the browser doesn't
+    // block it while Supabase retrieves the authenticated user.
+    const newTab = window.open('about:blank', '_blank');
+    if (!newTab) {
+      alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
+      return;
+    }
+    newTab.opener = null;
+
+    try {
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error) throw error;
+
+      const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection);
+      newTab.location.replace(targetUrl);
+    } catch (error) {
+      newTab.close();
+      alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
+      console.error('Error al abrir el formulario:', error);
+    }
   }
 
   const authScreen = document.getElementById('authScreen');
@@ -228,9 +249,7 @@
     link.addEventListener('click', (event) => {
       const formType = link.dataset.form;
       const includeDirection = formType === 'alta';
-      supabaseClient.auth.getUser().then(({ data }) => {
-        openFillout(event, link.href, includeDirection, data.user);
-      });
+      openFillout(event, link.href, includeDirection);
     });
   });
 
