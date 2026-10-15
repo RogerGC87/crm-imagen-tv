@@ -146,7 +146,7 @@
     <section>
       <div class="section-title">Formularios</div>
       <div class="cards">
-        <a class="card red" href="https://forms.fillout.com/t/hSpAXq69fLus" onclick="openFillout(event, this.href, true)">
+        <a class="card red" href="https://forms.fillout.com/t/hSpAXq69fLus" data-form="alta" target="_blank" rel="noopener">
           <div class="icon">👤</div>
           <div>
             <div class="eyebrow">Formulario</div>
@@ -155,7 +155,7 @@
           </div>
           <div class="arrow">›</div>
         </a>
-        <a class="card blue" href="https://forms.fillout.com/t/n17f6KbKDVus" onclick="openFillout(event, this.href, false)">
+        <a class="card blue" href="https://forms.fillout.com/t/n17f6KbKDVus" data-form="seguimiento" target="_blank" rel="noopener">
           <div class="icon">📋</div>
           <div>
             <div class="eyebrow">Formulario</div>
@@ -178,7 +178,7 @@
     </section>
 
     <p class="session-note">La sesión se cierra automáticamente después de 30 minutos sin actividad.</p>
-    <footer>Imagen TV &nbsp;|&nbsp; Área Comercial</footer>
+    <footer>Imagen TV &nbsp;|&nbsp; Dirección General Comercial | Business Intelligence</footer>
   </main>
 
 <script>
@@ -188,7 +188,7 @@
   const INACTIVITY_MS = 30 * 60 * 1000;
   const LAST_ACTIVITY_KEY = 'crm_imagen_tv_last_activity';
 
-  // Usuarios cuya Dirección Comercial queda fijada automáticamente en LAH.
+  // Usuarios normales reciben una Dirección fija; Roger es usuario maestro.
   const USER_DIRECTIONS = {
     'luis.hernandez@gimm.com.mx': 'LAH',
     'federico.carrera@gimm.com.mx': 'LAH',
@@ -197,30 +197,21 @@
     'paulina.castillo@gimm.com.mx': 'LAH',
     'sammar.diaz@gimm.com.mx': 'LAH'
   };
+  const MASTER_EMAIL = 'roger.guevara@gimm.com.mx';
 
-  function openFillout(event, baseUrl, includeDirection = false) {
+  function buildFilloutUrl(baseUrl, user, includeDirection = false) {
+    const url = new URL(baseUrl);
+    if (user?.email) url.searchParams.set('email', user.email);
+    const email = (user?.email || '').toLowerCase();
+    if (includeDirection && email !== MASTER_EMAIL && USER_DIRECTIONS[email]) {
+      url.searchParams.set('direccion', USER_DIRECTIONS[email]);
+    }
+    return url.toString();
+  }
+
+  function openFillout(event, baseUrl, includeDirection, user) {
     event.preventDefault();
-
-    supabaseClient.auth.getUser().then(({ data }) => {
-      const email = data?.user?.email?.toLowerCase();
-
-      if (!email) {
-        showLogin('Tu sesión no está disponible. Inicia sesión nuevamente.');
-        return;
-      }
-
-      const params = new URLSearchParams();
-      params.set('email', email);
-
-      if (includeDirection && USER_DIRECTIONS[email]) {
-        params.set('direccion', USER_DIRECTIONS[email]);
-      }
-
-      const separator = baseUrl.includes('?') ? '&' : '?';
-      const formUrl = baseUrl + separator + params.toString();
-
-      window.open(formUrl, '_blank', 'noopener');
-    });
+    window.open(buildFilloutUrl(baseUrl, user, includeDirection), '_blank', 'noopener');
   }
 
   const authScreen = document.getElementById('authScreen');
@@ -232,6 +223,16 @@
   const logoutBtn = document.getElementById('logoutBtn');
   let inactivityTimer = null;
   let activityWriteTimer = null;
+
+  document.querySelectorAll('a[data-form]').forEach(link => {
+    link.addEventListener('click', (event) => {
+      const formType = link.dataset.form;
+      const includeDirection = formType === 'alta';
+      supabaseClient.auth.getUser().then(({ data }) => {
+        openFillout(event, link.href, includeDirection, data.user);
+      });
+    });
+  });
 
   function showLogin(errorText = '') {
     authScreen.style.display = 'grid';
