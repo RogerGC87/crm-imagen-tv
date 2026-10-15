@@ -146,7 +146,7 @@
     <section>
       <div class="section-title">Formularios</div>
       <div class="cards">
-        <a class="card red" href="https://forms.fillout.com/t/hSpAXq69fLus" target="_blank" rel="noopener" onclick="openFillout(event, this.href)">
+        <a class="card red" href="https://forms.fillout.com/t/hSpAXq69fLus" onclick="openFillout(event, this.href, true)">
           <div class="icon">👤</div>
           <div>
             <div class="eyebrow">Formulario</div>
@@ -155,7 +155,7 @@
           </div>
           <div class="arrow">›</div>
         </a>
-        <a class="card blue" href="https://forms.fillout.com/t/n17f6KbKDVus" target="_blank" rel="noopener" onclick="openFillout(event, this.href)">
+        <a class="card blue" href="https://forms.fillout.com/t/n17f6KbKDVus" onclick="openFillout(event, this.href, false)">
           <div class="icon">📋</div>
           <div>
             <div class="eyebrow">Formulario</div>
@@ -188,6 +188,41 @@
   const INACTIVITY_MS = 30 * 60 * 1000;
   const LAST_ACTIVITY_KEY = 'crm_imagen_tv_last_activity';
 
+  // Usuarios cuya Dirección Comercial queda fijada automáticamente en LAH.
+  const USER_DIRECTIONS = {
+    'luis.hernandez@gimm.com.mx': 'LAH',
+    'federico.carrera@gimm.com.mx': 'LAH',
+    'frida.mendoza@gimm.com.mx': 'LAH',
+    'rebeca.figueroa@gimm.com.mx': 'LAH',
+    'paulina.castillo@gimm.com.mx': 'LAH',
+    'sammar.diaz@gimm.com.mx': 'LAH'
+  };
+
+  function openFillout(event, baseUrl, includeDirection = false) {
+    event.preventDefault();
+
+    supabaseClient.auth.getUser().then(({ data }) => {
+      const email = data?.user?.email?.toLowerCase();
+
+      if (!email) {
+        showLogin('Tu sesión no está disponible. Inicia sesión nuevamente.');
+        return;
+      }
+
+      const params = new URLSearchParams();
+      params.set('email', email);
+
+      if (includeDirection && USER_DIRECTIONS[email]) {
+        params.set('direccion', USER_DIRECTIONS[email]);
+      }
+
+      const separator = baseUrl.includes('?') ? '&' : '?';
+      const formUrl = baseUrl + separator + params.toString();
+
+      window.open(formUrl, '_blank', 'noopener');
+    });
+  }
+
   const authScreen = document.getElementById('authScreen');
   const portal = document.getElementById('portal');
   const loginForm = document.getElementById('loginForm');
@@ -211,23 +246,6 @@
     userPill.textContent = user?.email || 'Usuario autorizado';
     markActivity();
     startInactivityTimer();
-  }
-
-  function openFillout(event, baseUrl) {
-    event.preventDefault();
-
-    supabaseClient.auth.getUser().then(({ data }) => {
-      const email = data?.user?.email;
-
-      if (!email) {
-        showLogin('Tu sesión no está disponible. Inicia sesión nuevamente.');
-        return;
-      }
-
-      const separator = baseUrl.includes('?') ? '&' : '?';
-      const formUrl = baseUrl + separator + 'email=' + encodeURIComponent(email);
-      window.open(formUrl, '_blank', 'noopener');
-    });
   }
 
   function markActivity() {
