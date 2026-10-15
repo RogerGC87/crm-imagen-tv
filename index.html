@@ -204,7 +204,7 @@
     if (user?.email) url.searchParams.set('email', user.email);
     const email = (user?.email || '').toLowerCase();
     if (includeDirection && email !== MASTER_EMAIL && USER_DIRECTIONS[email]) {
-      url.searchParams.set('direccion', USER_DIRECTIONS[email]);
+      url.searchParams.set('Direccion', USER_DIRECTIONS[email]);
     }
     return url.toString();
   }
