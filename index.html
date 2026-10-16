@@ -311,7 +311,14 @@
 <script>
   const SUPABASE_URL = 'https://hxpqncahradmtgcsqcep.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_CQyRNHF0H-ZGOtBK2RlK1A_KhWWWLpI';
-  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      storage: window.sessionStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  });
   const INACTIVITY_MS = 30 * 60 * 1000;
   const LAST_ACTIVITY_KEY = 'crm_imagen_tv_last_activity';
 
