@@ -502,12 +502,12 @@
 
     return `<div class="seguimientos-list">${ordered.map(s => {
       const actividad = s.actividad || 'Seguimiento';
-      const fecha = formatFollowUpDate(s.fecha);
-      const tipo = s.tipo || '';
+      const fecha = formatFollowUpDate(s.fecha || s.Fecha || '');
+      const tipo = s.tipo || s.tipoContacto || s.tipo_contacto || '';
       const resultado = s.resultado || '';
       const next = s.proximaAccion || s.proxima_accion || '';
       const nextDate = formatFollowUpDate(s.proximoContacto || s.proximo_contacto || '');
-      const completed = !!(s.completado ?? s.completado === true);
+      const completed = s.completado === true;
       const status = completed
         ? '<span class="seguimiento-check done">✓ Completado</span>'
         : '<span class="seguimiento-check pending">○ Pendiente</span>';
@@ -515,9 +515,11 @@
       return `<div class="seguimiento-card">
         <div class="seguimiento-top">
           <span class="seguimiento-actividad">${escapeHtml(actividad)}</span>
-          <span class="seguimiento-meta">${escapeHtml([fecha, tipo].filter(Boolean).join(' · '))}</span>
+          <span class="seguimiento-meta">${escapeHtml([tipo, fecha].filter(Boolean).join(' · '))}</span>
         </div>
         <div class="seguimiento-fields">
+          ${fecha ? `<div class="seguimiento-field"><span class="seguimiento-label">Fecha</span><div class="seguimiento-value">${escapeHtml(fecha)}</div></div>` : ''}
+          ${tipo ? `<div class="seguimiento-field"><span class="seguimiento-label">Tipo de contacto</span><div class="seguimiento-value">${escapeHtml(tipo)}</div></div>` : ''}
           ${resultado ? `<div class="seguimiento-field"><span class="seguimiento-label">Resultado</span><div class="seguimiento-value">${escapeHtml(resultado)}</div></div>` : ''}
           ${nextDate ? `<div class="seguimiento-field"><span class="seguimiento-label">Próximo contacto</span><div class="seguimiento-value">${escapeHtml(nextDate)}</div></div>` : ''}
         </div>
@@ -526,6 +528,7 @@
       </div>`;
     }).join('')}</div>`;
   }
+
 
   function openClienteFicha(cliente) {
     const fields = [
