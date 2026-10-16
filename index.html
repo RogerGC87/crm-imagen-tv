@@ -153,6 +153,23 @@
   .dashboard-screen .icon{margin:0 auto 18px;background:#edf1f4;color:#718090}
   .dashboard-screen h2{margin:0 0 8px}
   @media(max-width:720px){.home-actions{grid-template-columns:1fr}.home-card{min-height:130px;padding:22px}.home-card .icon{width:64px;height:64px;flex-basis:64px;font-size:30px}.home-card h2{font-size:21px}}
+
+  .cliente-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1000;align-items:center;justify-content:center;padding:24px}
+  .cliente-modal.active{display:flex}
+  .cliente-modal-card{width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px rgba(16,43,67,.24)}
+  .cliente-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px;border-bottom:1px solid var(--border)}
+  .cliente-modal-head h2{margin:3px 0 0;font-size:28px}
+  .cliente-modal-close{width:40px;height:40px;border:1px solid #d6dde3;border-radius:50%;background:#fff;color:var(--navy);font-size:24px;cursor:pointer;line-height:1}
+  .cliente-modal-close:hover{border-color:var(--red);color:var(--red)}
+  .cliente-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;padding:24px 28px 30px}
+  .cliente-detail-item{padding:13px 0;border-bottom:1px solid #edf0f3;min-width:0}
+  .cliente-detail-item.full{grid-column:1/-1}
+  .cliente-detail-label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#718090;font-weight:700;margin-bottom:5px}
+  .cliente-detail-value{font-size:15px;color:var(--navy);font-weight:600;overflow-wrap:anywhere}
+  .cliente-detail-value.muted{font-weight:400;color:#627283}
+  .consulta-table tbody tr.cliente-row{cursor:pointer}
+  .consulta-table tbody tr.cliente-row:focus-within,.consulta-table tbody tr.cliente-row:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:-2px}
+  @media(max-width:720px){.cliente-modal{padding:12px}.cliente-modal-card{max-height:94vh;border-radius:18px}.cliente-modal-head{padding:20px}.cliente-detail-grid{grid-template-columns:1fr;padding:18px 20px 24px}.cliente-detail-item.full{grid-column:auto}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -244,6 +261,16 @@
         </div>
       </div>
     </section>
+
+    <div id="clienteModal" class="cliente-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="clienteModalTitle">
+      <div class="cliente-modal-card">
+        <div class="cliente-modal-head">
+          <div><div class="eyebrow">Ficha de cliente</div><h2 id="clienteModalTitle">Cliente</h2></div>
+          <button id="clienteModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
+        </div>
+        <div id="clienteDetailGrid" class="cliente-detail-grid"></div>
+      </div>
+    </div>
 
     <section id="dashboardView" class="view" aria-hidden="true">
       <div class="view-nav">
@@ -401,8 +428,8 @@
       return (!q || haystack.includes(q)) && (!dir || c.direccion === dir) && (!estado || c.estado === estado);
     });
 
-    consultaBody.innerHTML = rows.length ? rows.map(c => `
-      <tr>
+    consultaBody.innerHTML = rows.length ? rows.map((c, index) => `
+      <tr class="cliente-row" data-client-index="${consultaClientes.indexOf(c)}" tabindex="0" role="button" aria-label="Abrir ficha de ${escapeHtml(c.cliente || 'cliente')}">
         <td><strong>${escapeHtml(c.cliente || '—')}</strong></td>
         <td>${escapeHtml(c.agencia || '—')}</td>
         <td>${escapeHtml(c.mail || '—')}</td>
@@ -412,6 +439,80 @@
       </tr>`).join('') : '<tr><td colspan="6" class="consulta-empty">No se encontraron clientes.</td></tr>';
 
     consultaStatus.textContent = `${rows.length} cliente${rows.length === 1 ? '' : 's'}`;
+    bindClienteRows();
+  }
+
+  function formatDetailValue(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    if (Array.isArray(value)) {
+      if (!value.length) return '—';
+      return value.map(v => {
+        if (typeof v === 'string') return v;
+        if (v?.name) return v.name;
+        if (v?.title) return v.title;
+        if (v?.plain_text) return v.plain_text;
+        return JSON.stringify(v);
+      }).join(', ');
+    }
+    if (typeof value === 'object') {
+      if (value.name) return value.name;
+      if (value.title) return value.title;
+      if (value.plain_text) return value.plain_text;
+      return JSON.stringify(value);
+    }
+    return String(value);
+  }
+
+  function openClienteFicha(cliente) {
+    const fields = [
+      ['Cliente', cliente.cliente],
+      ['Nombre de contacto', cliente.nombreContacto ?? cliente.nombre_contacto ?? cliente.contacto],
+      ['Dirección Comercial', cliente.direccion ?? cliente.direccionComercial ?? cliente.direccion_comercial],
+      ['Agencia', cliente.agencia],
+      ['Mail', cliente.mail],
+      ['Teléfono', cliente.telefono ?? cliente.telefonoContacto ?? cliente.telefono_contacto],
+      ['Puesto', cliente.puesto],
+      ['Estado Lead', cliente.estado ?? cliente.estadoLead ?? cliente.estado_lead],
+      ['Origen', cliente.origen],
+      ['Forecast', formatForecast(cliente.forecast)],
+      ['Probabilidad', cliente.probabilidad !== undefined && cliente.probabilidad !== null && cliente.probabilidad !== '' ? `${cliente.probabilidad}%` : '—'],
+      ['Forecast Ponderado', formatForecast(cliente.forecastPonderado ?? cliente.forecast_ponderado)],
+      ['Seguimientos', cliente.seguimientos ?? cliente.seguimiento, true]
+    ];
+
+    document.getElementById('clienteModalTitle').textContent = cliente.cliente || 'Cliente';
+    document.getElementById('clienteDetailGrid').innerHTML = fields.map(([label, value, full]) => `
+      <div class="cliente-detail-item${full ? ' full' : ''}">
+        <span class="cliente-detail-label">${escapeHtml(label)}</span>
+        <div class="cliente-detail-value${value === undefined || value === null || value === '' ? ' muted' : ''}">${escapeHtml(formatDetailValue(value))}</div>
+      </div>`).join('');
+
+    const modal = document.getElementById('clienteModal');
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.getElementById('clienteModalClose').focus();
+  }
+
+  function closeClienteFicha() {
+    const modal = document.getElementById('clienteModal');
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function bindClienteRows() {
+    document.querySelectorAll('.cliente-row').forEach(row => {
+      const open = () => {
+        const index = Number(row.dataset.clientIndex);
+        if (Number.isInteger(index) && consultaClientes[index]) openClienteFicha(consultaClientes[index]);
+      };
+      row.addEventListener('click', open);
+      row.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          open();
+        }
+      });
+    });
   }
 
   function escapeHtml(value) {
@@ -477,6 +578,14 @@
   consultaSearch.addEventListener('input', renderConsulta);
   consultaEstado.addEventListener('change', renderConsulta);
   consultaDireccion.addEventListener('change', loadConsulta);
+
+  document.getElementById('clienteModalClose').addEventListener('click', closeClienteFicha);
+  document.getElementById('clienteModal').addEventListener('click', event => {
+    if (event.target.id === 'clienteModal') closeClienteFicha();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeClienteFicha();
+  });
 
   function showLogin(errorText = '') {
     authScreen.style.display = 'grid';
