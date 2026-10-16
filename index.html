@@ -167,7 +167,8 @@
   .cliente-detail-label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#718090;font-weight:700;margin-bottom:5px}
   .cliente-detail-value{font-size:15px;color:var(--navy);font-weight:600;overflow-wrap:anywhere}
   .cliente-detail-value.muted{font-weight:400;color:#627283}
-  .consulta-table tbody tr.cliente-row{cursor:pointer}
+  .consulta-table tbody tr.cliente-row{cursor:pointer;pointer-events:auto}
+  .consulta-table tbody tr.cliente-row td{pointer-events:auto}
   .consulta-table tbody tr.cliente-row:focus-within,.consulta-table tbody tr.cliente-row:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:-2px}
   @media(max-width:720px){.cliente-modal{padding:12px}.cliente-modal-card{max-height:94vh;border-radius:18px}.cliente-modal-head{padding:20px}.cliente-detail-grid{grid-template-columns:1fr;padding:18px 20px 24px}.cliente-detail-item.full{grid-column:auto}}
 </style>
@@ -439,7 +440,6 @@
       </tr>`).join('') : '<tr><td colspan="6" class="consulta-empty">No se encontraron clientes.</td></tr>';
 
     consultaStatus.textContent = `${rows.length} cliente${rows.length === 1 ? '' : 's'}`;
-    bindClienteRows();
   }
 
   function formatDetailValue(value) {
@@ -497,22 +497,6 @@
     const modal = document.getElementById('clienteModal');
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true');
-  }
-
-  function bindClienteRows() {
-    document.querySelectorAll('.cliente-row').forEach(row => {
-      const open = () => {
-        const index = Number(row.dataset.clientIndex);
-        if (Number.isInteger(index) && consultaClientes[index]) openClienteFicha(consultaClientes[index]);
-      };
-      row.addEventListener('click', open);
-      row.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          open();
-        }
-      });
-    });
   }
 
   function escapeHtml(value) {
@@ -578,6 +562,25 @@
   consultaSearch.addEventListener('input', renderConsulta);
   consultaEstado.addEventListener('change', renderConsulta);
   consultaDireccion.addEventListener('change', loadConsulta);
+
+  // Abrir la ficha mediante delegación de eventos: funciona aunque las filas se
+  // redibujen por búsqueda/filtros y evita depender de listeners por fila.
+  consultaBody.addEventListener('click', event => {
+    const row = event.target.closest('tr.cliente-row');
+    if (!row || !consultaBody.contains(row)) return;
+    const index = Number(row.dataset.clientIndex);
+    if (Number.isInteger(index) && consultaClientes[index]) openClienteFicha(consultaClientes[index]);
+  });
+
+  consultaBody.addEventListener('keydown', event => {
+    const row = event.target.closest('tr.cliente-row');
+    if (!row || !consultaBody.contains(row)) return;
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      const index = Number(row.dataset.clientIndex);
+      if (Number.isInteger(index) && consultaClientes[index]) openClienteFicha(consultaClientes[index]);
+    }
+  });
 
   document.getElementById('clienteModalClose').addEventListener('click', closeClienteFicha);
   document.getElementById('clienteModal').addEventListener('click', event => {
