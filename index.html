@@ -143,8 +143,8 @@
   .home-card.red .arrow{color:var(--red)}
   .home-card.blue .arrow{color:var(--blue)}
   .home-card.gray .arrow{color:#718090}
-  .view{display:none}
-  .view.active{display:block}
+  .view{display:none !important}
+  .view.active{display:block !important}
   .view-nav{display:flex;align-items:center;gap:12px;margin-bottom:18px}
   .back-btn{border:1px solid #d6dde3;background:#fff;color:var(--navy);border-radius:999px;padding:9px 15px;font-weight:700;cursor:pointer}
   .back-btn:hover{border-color:var(--blue);color:var(--blue)}
@@ -191,7 +191,7 @@
       <div class="accent"></div>
     </header>
 
-    <section id="homeView" class="view active">
+    <section id="homeView" class="view active" aria-hidden="false">
       <div class="section-title">Menú principal</div>
       <div class="home-actions">
         <a class="home-card red" href="https://forms.fillout.com/t/hSpAXq69fLus" data-form="alta" target="_blank" rel="noopener">
@@ -217,7 +217,7 @@
       </div>
     </section>
 
-    <section id="consultaView" class="view">
+    <section id="consultaView" class="view" aria-hidden="true">
       <div class="view-nav">
         <button class="back-btn" type="button" data-back>← Volver al menú</button>
         <div class="view-title">Consulta</div>
@@ -245,7 +245,7 @@
       </div>
     </section>
 
-    <section id="dashboardView" class="view">
+    <section id="dashboardView" class="view" aria-hidden="true">
       <div class="view-nav">
         <button class="back-btn" type="button" data-back>← Volver al menú</button>
         <div class="view-title">Dashboard</div>
@@ -348,11 +348,18 @@
   const views = { home: homeView, consulta: consultaView, dashboard: dashboardView };
 
   function showView(name) {
-    Object.values(views).forEach(view => view.classList.remove('active'));
-    (views[name] || homeView).classList.add('active');
+    const target = views[name] || homeView;
+    Object.entries(views).forEach(([key, view]) => {
+      const active = view === target;
+      view.classList.toggle('active', active);
+      view.setAttribute('aria-hidden', active ? 'false' : 'true');
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (name === 'consulta') loadConsulta();
   }
+
+  // Al iniciar sesión, siempre mostrar primero el menú de 4 botones.
+  showView('home');
 
   document.querySelectorAll('[data-view]').forEach(button => {
     button.addEventListener('click', () => showView(button.dataset.view));
