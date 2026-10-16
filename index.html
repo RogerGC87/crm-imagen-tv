@@ -435,6 +435,10 @@
       const email = (sessionData.session.user?.email || '').toLowerCase();
       const params = new URLSearchParams();
       if (email === MASTER_EMAIL && consultaDireccion.value) params.set('direccion', consultaDireccion.value);
+      if (email !== MASTER_EMAIL && USER_DIRECTIONS[email]) {
+        consultaDireccion.value = USER_DIRECTIONS[email];
+        consultaDireccion.disabled = true;
+      }
 
       const response = await fetch(`${NOTION_FUNCTION_URL}?${params.toString()}`, {
         method: 'GET',
@@ -448,7 +452,16 @@
       if (!response.ok) throw new Error(data.error || 'No fue posible consultar los clientes.');
 
       consultaClientes = Array.isArray(data.clientes) ? data.clientes : [];
-      if (email === MASTER_EMAIL) consultaDireccion.style.display = '';
+      if (email === MASTER_EMAIL) {
+        consultaDireccion.style.display = '';
+        consultaDireccion.disabled = false;
+      } else if (USER_DIRECTIONS[email]) {
+        consultaDireccion.style.display = '';
+        consultaDireccion.value = USER_DIRECTIONS[email];
+        consultaDireccion.disabled = true;
+      } else {
+        consultaDireccion.style.display = 'none';
+      }
       populateEstados();
       renderConsulta();
     } catch (error) {
