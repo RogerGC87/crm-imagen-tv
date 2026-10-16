@@ -166,13 +166,20 @@
   .cliente-detail-item.full{grid-column:1/-1}
   .cliente-detail-label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#718090;font-weight:700;margin-bottom:5px}
   .cliente-detail-value{font-size:15px;color:var(--navy);font-weight:600;overflow-wrap:anywhere}
-  .seguimientos-list{display:grid;gap:10px;margin-top:4px}
-  .seguimiento-card{border:1px solid #e2e8ee;border-radius:12px;padding:12px 14px;background:#f8fafc}
-  .seguimiento-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:6px}
-  .seguimiento-actividad{font-weight:700;color:var(--navy)}
-  .seguimiento-meta{font-size:12px;color:#6b7c8e;white-space:nowrap}
-  .seguimiento-result{font-size:13px;color:#33485d;line-height:1.45}
-  .seguimiento-next{font-size:12px;color:#5f7182;margin-top:6px}
+  .seguimientos-list{display:grid;gap:12px;margin-top:4px}
+  .seguimiento-card{border:1px solid #dfe7ee;border-radius:14px;padding:14px 16px;background:#f8fafc}
+  .seguimiento-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:10px}
+  .seguimiento-actividad{font-weight:700;color:var(--navy);font-size:15px}
+  .seguimiento-meta{font-size:12px;color:#6b7c8e;white-space:nowrap;text-align:right}
+  .seguimiento-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px}
+  .seguimiento-field{min-width:0}
+  .seguimiento-label{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:#7a8997;font-weight:700;margin-bottom:3px}
+  .seguimiento-value{font-size:12px;color:#33485d;line-height:1.4;overflow-wrap:anywhere}
+  .seguimiento-next{font-size:12px;color:#33485d;margin-top:10px;padding-top:9px;border-top:1px solid #e5ebf0}
+  .seguimiento-check{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
+  .seguimiento-check.done{color:#3d7658}
+  .seguimiento-check.pending{color:#9a6b27}
+  @media(max-width:720px){.seguimiento-fields{grid-template-columns:1fr}.seguimiento-top{display:block}.seguimiento-meta{text-align:left;margin-top:4px}}
   .cliente-detail-value.muted{font-weight:400;color:#627283}
   .consulta-table tbody tr.cliente-row{cursor:pointer;pointer-events:auto}
   .consulta-table tbody tr.cliente-row td{pointer-events:auto}
@@ -477,20 +484,45 @@
     return `${n * 100}%`;
   }
 
+  function formatFollowUpDate(value) {
+    if (!value) return '';
+    const raw = String(value);
+    const datePart = raw.slice(0, 10);
+    const m = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return raw;
+    return `${m[3]}/${m[2]}/${m[1]}`;
+  }
+
   function renderSeguimientos(seguimientos) {
     if (!Array.isArray(seguimientos) || !seguimientos.length) return '—';
-    return `<div class=\"seguimientos-list\">${seguimientos.map(s => {
+
+    const ordered = [...seguimientos].sort((a, b) =>
+      String(b.fecha || '').localeCompare(String(a.fecha || ''))
+    );
+
+    return `<div class="seguimientos-list">${ordered.map(s => {
       const actividad = s.actividad || 'Seguimiento';
-      const meta = [s.fecha, s.tipo].filter(Boolean).join(' · ');
-      const result = s.resultado || '';
+      const fecha = formatFollowUpDate(s.fecha);
+      const tipo = s.tipo || '';
+      const resultado = s.resultado || '';
       const next = s.proximaAccion || s.proxima_accion || '';
-      return `<div class=\"seguimiento-card\">
-        <div class=\"seguimiento-top\">
-          <span class=\"seguimiento-actividad\">${escapeHtml(actividad)}</span>
-          <span class=\"seguimiento-meta\">${escapeHtml(meta)}</span>
+      const nextDate = formatFollowUpDate(s.proximoContacto || s.proximo_contacto || '');
+      const completed = !!(s.completado ?? s.completado === true);
+      const status = completed
+        ? '<span class="seguimiento-check done">✓ Completado</span>'
+        : '<span class="seguimiento-check pending">○ Pendiente</span>';
+
+      return `<div class="seguimiento-card">
+        <div class="seguimiento-top">
+          <span class="seguimiento-actividad">${escapeHtml(actividad)}</span>
+          <span class="seguimiento-meta">${escapeHtml([fecha, tipo].filter(Boolean).join(' · '))}</span>
         </div>
-        ${result ? `<div class=\"seguimiento-result\">${escapeHtml(result)}</div>` : ''}
-        ${next ? `<div class=\"seguimiento-next\"><strong>Próxima acción:</strong> ${escapeHtml(next)}</div>` : ''}
+        <div class="seguimiento-fields">
+          ${resultado ? `<div class="seguimiento-field"><span class="seguimiento-label">Resultado</span><div class="seguimiento-value">${escapeHtml(resultado)}</div></div>` : ''}
+          ${nextDate ? `<div class="seguimiento-field"><span class="seguimiento-label">Próximo contacto</span><div class="seguimiento-value">${escapeHtml(nextDate)}</div></div>` : ''}
+        </div>
+        ${next ? `<div class="seguimiento-next"><span class="seguimiento-label">Próxima acción</span><span class="seguimiento-value">${escapeHtml(next)}</span></div>` : ''}
+        <div style="margin-top:9px">${status}</div>
       </div>`;
     }).join('')}</div>`;
   }
