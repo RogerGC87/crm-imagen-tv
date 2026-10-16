@@ -105,6 +105,28 @@
   .logout-btn{border:1px solid #d6dde3;background:#fff;color:var(--navy);border-radius:999px;padding:9px 14px;font-weight:700;cursor:pointer}
   .logout-btn:hover{border-color:var(--red);color:var(--red)}
   .session-note{text-align:center;margin:16px 0 0;color:#7a8998;font-size:11px}
+
+  .consulta{margin-top:28px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:20px;padding:28px;box-shadow:0 10px 30px rgba(16,43,67,.08)}
+  .consulta-head{display:flex;align-items:center;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+  .consulta-head .icon{width:58px;height:58px;flex-basis:58px;font-size:28px;background:#eef7fc;color:var(--blue);border-radius:16px}
+  .consulta-head h2{margin:0 0 4px}
+  .consulta-head .desc{font-size:14px}
+  .consulta-controls{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .consulta-controls input,.consulta-controls select{padding:11px 13px;border:1px solid #cfd8df;border-radius:10px;background:#fff;color:var(--navy);font-size:14px;min-width:180px;outline:none}
+  .consulta-controls input{flex:1;min-width:240px}
+  .consulta-controls input:focus,.consulta-controls select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(33,140,199,.10)}
+  .consulta-table-wrap{overflow:auto;border:1px solid var(--border);border-radius:14px}
+  .consulta-table{width:100%;border-collapse:collapse;min-width:760px;background:#fff}
+  .consulta-table th{background:#f5f7f9;color:#667788;text-transform:uppercase;font-size:11px;letter-spacing:1px;text-align:left;padding:12px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .consulta-table td{padding:13px 14px;border-bottom:1px solid #edf0f3;font-size:14px;vertical-align:middle}
+  .consulta-table tr:last-child td{border-bottom:0}
+  .consulta-table tbody tr:hover{background:#f9fbfc}
+  .consulta-empty{padding:28px;text-align:center;color:#7a8998;font-size:13px}
+  .estado-pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef2f5;color:#526273;font-size:12px;font-weight:700}
+  .forecast{font-weight:800;white-space:nowrap}
+  .consulta-status{font-size:12px;color:#7a8998;margin-left:auto}
+  .consulta-error{display:none;margin:12px 0;padding:11px 13px;border-radius:10px;background:#fff0f2;color:#b20f22;font-size:13px}
+  @media(max-width:720px){.consulta{padding:20px}.consulta-controls input{min-width:100%}.consulta-controls select{flex:1;min-width:0}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -164,6 +186,48 @@
           </div>
           <div class="arrow">›</div>
         </a>
+      </div>
+    </section>
+
+    <section class="consulta">
+      <div class="consulta-head">
+        <div class="icon">🔎</div>
+        <div>
+          <div class="eyebrow">Consulta</div>
+          <h2>Consultar clientes</h2>
+          <p class="desc">Revisa la información de clientes registrados en el CRM.</p>
+        </div>
+        <div id="consultaStatus" class="consulta-status"></div>
+      </div>
+      <div class="consulta-controls">
+        <input id="consultaSearch" type="search" placeholder="Buscar cliente o agencia…">
+        <select id="consultaDireccion" style="display:none">
+          <option value="">Todas las direcciones</option>
+          <option value="LAH">LAH</option>
+          <option value="GS">GS</option>
+          <option value="BI">BI</option>
+        </select>
+        <select id="consultaEstado">
+          <option value="">Todos los estados</option>
+        </select>
+      </div>
+      <div id="consultaError" class="consulta-error"></div>
+      <div class="consulta-table-wrap">
+        <table class="consulta-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Agencia</th>
+              <th>Mail Contacto</th>
+              <th>Puesto</th>
+              <th>Forecast</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody id="consultaBody">
+            <tr><td colspan="6" class="consulta-empty">Cargando clientes…</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -269,6 +333,95 @@
     });
   });
 
+
+  const NOTION_FUNCTION_URL = SUPABASE_URL + '/functions/v1/notion-clientes';
+  const consultaSearch = document.getElementById('consultaSearch');
+  const consultaDireccion = document.getElementById('consultaDireccion');
+  const consultaEstado = document.getElementById('consultaEstado');
+  const consultaBody = document.getElementById('consultaBody');
+  const consultaStatus = document.getElementById('consultaStatus');
+  const consultaError = document.getElementById('consultaError');
+  let consultaClientes = [];
+
+  function formatForecast(value) {
+    if (value === null || value === undefined || value === '') return '—';
+    return new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN', maximumFractionDigits:0 }).format(Number(value));
+  }
+
+  function renderConsulta() {
+    const q = (consultaSearch.value || '').trim().toLowerCase();
+    const dir = consultaDireccion.value;
+    const estado = consultaEstado.value;
+
+    const rows = consultaClientes.filter(c => {
+      const haystack = `${c.cliente || ''} ${c.agencia || ''}`.toLowerCase();
+      return (!q || haystack.includes(q)) && (!dir || c.direccion === dir) && (!estado || c.estado === estado);
+    });
+
+    consultaBody.innerHTML = rows.length ? rows.map(c => `
+      <tr>
+        <td><strong>${escapeHtml(c.cliente || '—')}</strong></td>
+        <td>${escapeHtml(c.agencia || '—')}</td>
+        <td>${escapeHtml(c.mail || '—')}</td>
+        <td>${escapeHtml(c.puesto || '—')}</td>
+        <td class="forecast">${formatForecast(c.forecast)}</td>
+        <td><span class="estado-pill">${escapeHtml(c.estado || 'Sin estado')}</span></td>
+      </tr>`).join('') : '<tr><td colspan="6" class="consulta-empty">No se encontraron clientes.</td></tr>';
+
+    consultaStatus.textContent = `${rows.length} cliente${rows.length === 1 ? '' : 's'}`;
+  }
+
+  function escapeHtml(value) {
+    return String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','\"':'&quot;'}[ch]));
+  }
+
+  function populateEstados() {
+    const estados = [...new Set(consultaClientes.map(c => c.estado).filter(Boolean))].sort();
+    consultaEstado.innerHTML = '<option value="">Todos los estados</option>' + estados.map(e => `<option value="${escapeHtml(e)}">${escapeHtml(e)}</option>`).join('');
+  }
+
+  async function loadConsulta() {
+    consultaError.style.display = 'none';
+    consultaStatus.textContent = 'Consultando…';
+    consultaBody.innerHTML = '<tr><td colspan="6" class="consulta-empty">Cargando clientes…</td></tr>';
+
+    try {
+      const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+      if (sessionError || !sessionData.session) throw new Error('Sesión no disponible.');
+
+      const email = (sessionData.session.user?.email || '').toLowerCase();
+      const params = new URLSearchParams();
+      if (email === MASTER_EMAIL && consultaDireccion.value) params.set('direccion', consultaDireccion.value);
+
+      const response = await fetch(`${NOTION_FUNCTION_URL}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${sessionData.session.access_token}`,
+          apikey: SUPABASE_PUBLISHABLE_KEY
+        }
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'No fue posible consultar los clientes.');
+
+      consultaClientes = Array.isArray(data.clientes) ? data.clientes : [];
+      if (email === MASTER_EMAIL) consultaDireccion.style.display = '';
+      populateEstados();
+      renderConsulta();
+    } catch (error) {
+      consultaClientes = [];
+      consultaBody.innerHTML = '<tr><td colspan="6" class="consulta-empty">No fue posible cargar los clientes.</td></tr>';
+      consultaStatus.textContent = '';
+      consultaError.textContent = error.message || 'Error consultando clientes.';
+      consultaError.style.display = 'block';
+      console.error('Error en Consulta:', error);
+    }
+  }
+
+  consultaSearch.addEventListener('input', renderConsulta);
+  consultaEstado.addEventListener('change', renderConsulta);
+  consultaDireccion.addEventListener('change', loadConsulta);
+
   function showLogin(errorText = '') {
     authScreen.style.display = 'grid';
     portal.style.display = 'none';
@@ -282,6 +435,7 @@
     userPill.textContent = user?.email || 'Usuario autorizado';
     markActivity();
     startInactivityTimer();
+    loadConsulta();
   }
 
   function markActivity() {
