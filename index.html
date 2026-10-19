@@ -228,6 +228,9 @@
   .seguimiento-label{display:block;font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:#7a8997;font-weight:700;margin-bottom:3px}
   .seguimiento-value{font-size:12px;color:#33485d;line-height:1.4;overflow-wrap:anywhere}
   .seguimiento-next{font-size:12px;color:#33485d;margin-top:10px;padding-top:9px;border-top:1px solid #e5ebf0}
+  .seguimiento-files{margin-top:11px;padding-top:10px;border-top:1px solid #e5ebf0;display:flex;flex-wrap:wrap;gap:7px}
+  .seguimiento-file{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid #cbd9e5;border-radius:9px;background:#fff;color:#1f6f9f;text-decoration:none;font-size:11px;font-weight:700}
+  .seguimiento-file:hover{background:#f0f7fb;border-color:#9bbbd0}
   .seguimiento-check{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
   .seguimiento-check.done{color:#3d7658}
   .seguimiento-check.pending{color:#9a6b27}
@@ -796,6 +799,7 @@
       const resultado = s.resultado || '';
       const next = s.proximaAccion || s.proxima_accion || '';
       const nextDate = formatFollowUpDate(s.proximoContacto || s.proximo_contacto || '');
+      const archivos = Array.isArray(s.archivos) ? s.archivos.filter(a => a && a.url) : [];
       const completed = s.completado === true;
       const status = completed
         ? '<span class="seguimiento-check done">✓ Completado</span>'
@@ -813,6 +817,7 @@
           ${nextDate ? `<div class="seguimiento-field"><span class="seguimiento-label">Próximo contacto</span><div class="seguimiento-value">${escapeHtml(nextDate)}</div></div>` : ''}
         </div>
         ${next ? `<div class="seguimiento-next"><span class="seguimiento-label">Próxima acción</span><span class="seguimiento-value">${escapeHtml(next)}</span></div>` : ''}
+        ${archivos.length ? `<div class="seguimiento-files">${archivos.map((archivo, index) => `<a class="seguimiento-file" href="${escapeHtml(archivo.url)}" target="_blank" rel="noopener noreferrer">📎 ${escapeHtml(archivo.nombre || (archivos.length > 1 ? `Ver archivo ${index + 1}` : 'Ver propuesta / negociación'))}</a>`).join('')}</div>` : ''}
         <div style="margin-top:9px">${status}</div>
       </div>`;
     }).join('')}</div>`;
