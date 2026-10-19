@@ -382,7 +382,7 @@
           </div>
 
           <div class="dash-section">
-            <div class="dash-section-title"><h3 id="dashboardChartTitle">Forecast por Dirección</h3><span>MXN</span></div>
+            <div class="dash-section-title"><h3 id="dashboardChartTitle">Forecast por Dirección</h3><span>Millones de MXN</span></div>
             <div id="dashboardBars" class="bar-list"></div>
           </div>
 
@@ -392,7 +392,7 @@
           </div>
 
           <div id="dashboardClientsSection" class="dash-section" style="display:none">
-            <div class="dash-section-title"><h3 id="dashboardClientsChartTitle">Forecast por Cliente</h3><span>MXN</span></div>
+            <div class="dash-section-title"><h3 id="dashboardClientsChartTitle">Forecast por Cliente</h3><span>Millones de MXN</span></div>
             <div id="dashboardClientBars" class="client-bar-list"></div>
           </div>
         </div>
@@ -722,7 +722,9 @@
 
   function formatForecast(value) {
     if (value === null || value === undefined || value === '') return '—';
-    return new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN', maximumFractionDigits:0 }).format(Number(value));
+    const n = Number(value);
+    if (!Number.isFinite(n)) return '—';
+    return `$${new Intl.NumberFormat('es-MX', { minimumFractionDigits:1, maximumFractionDigits:1 }).format(n / 1000000)} M`;
   }
 
   function renderConsulta() {
