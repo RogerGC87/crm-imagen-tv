@@ -202,11 +202,65 @@
   .back-btn:hover{border-color:var(--blue);color:var(--blue)}
   .view-title{font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#718090;font-weight:700}
   .dashboard-screen{margin-top:8px;background:rgba(255,255,255,.94);border:1px solid var(--border);border-radius:20px;padding:38px;box-shadow:0 10px 30px rgba(16,43,67,.08);text-align:center}
+.dash-view-switch{display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0 0 18px}
+  .dash-view-switch-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:#718090;margin-right:4px}
+  .dash-view-btn{border:1px solid #d6e0e8;background:#fff;color:#53697c;border-radius:10px;padding:9px 15px;font-size:12px;font-weight:800;cursor:pointer}
+  .dash-view-btn.active{background:#0f2f4f;color:#fff;border-color:#0f2f4f}
+  .agency-legend{display:flex;gap:16px;align-items:center;justify-content:flex-end;font-size:11px;color:#718090;font-weight:700;margin-top:-4px;margin-bottom:8px}
+  .agency-legend span{display:inline-flex;align-items:center;gap:6px}
+  .agency-dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .agency-bar-row{display:grid;grid-template-columns:150px minmax(260px,1fr) 105px;gap:14px;align-items:center;margin:14px 0}
+  .agency-bar-label{font-size:13px;font-weight:800;color:#173b5b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .agency-bar-track{height:28px;background:#edf2f6;border-radius:999px;overflow:hidden;display:flex}
+  .agency-bar-segment{height:100%;min-width:0;transition:width .2s ease}
+  .agency-bar-value{text-align:right;font-size:13px;font-weight:800;color:#173b5b}
+  .agency-bar-meta{font-size:10px;color:#718090;margin-top:2px;font-weight:600}
+  .agency-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .agency-card{background:#fff;border:1px solid #dce5ec;border-radius:14px;padding:17px 18px;box-shadow:0 4px 14px rgba(16,43,67,.04)}
+  .agency-card-name{font-size:14px;font-weight:800;color:#173b5b;margin-bottom:8px}
+  .agency-card-clientes{font-size:24px;font-weight:900;color:#0f2f4f}
+  .agency-card-caption{font-size:11px;color:#718090;margin-bottom:10px}
+  .agency-card-forecast{font-size:17px;font-weight:900;color:#218cc7}
+  .agency-card-ponderado{font-size:11px;color:#718090;margin-top:4px}
+  @media(max-width:900px){
+    .agency-bar-row{grid-template-columns:105px minmax(150px,1fr) 85px;gap:9px}
+    .dash-view-switch{justify-content:flex-start}
+  }
+
+  
+  .agency-table-wrap{overflow:auto}
+  .agency-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  .agency-table th{background:#f4f7f9;color:#718090;text-transform:uppercase;letter-spacing:1.2px;font-size:10px;font-weight:800;text-align:left;padding:12px 14px;border-bottom:1px solid #dfe7ee}
+  .agency-table th:nth-child(2),.agency-table th:nth-child(3){text-align:right}
+  .agency-table td{padding:13px 14px;border-bottom:1px solid #edf0f3;color:#173b5b;font-weight:600}
+  .agency-table td:nth-child(2),.agency-table td:nth-child(3){text-align:right}
+  .agency-table tbody tr{cursor:pointer;transition:background .15s ease}
+  .agency-table tbody tr:hover{background:#f5f9fc}
+  .agency-table tbody tr:last-child td{border-bottom:0}
+  .agency-name-cell{font-weight:800!important}
+  .agency-ficha-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1100;align-items:center;justify-content:center;padding:24px}
+  .agency-ficha-modal.active{display:flex}
+  .agency-ficha-card{width:min(980px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px rgba(16,43,67,.24)}
+  .agency-ficha-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px;border-bottom:1px solid var(--border)}
+  .agency-ficha-head h2{margin:3px 0 0;font-size:28px}
+  .agency-ficha-summary{display:flex;gap:28px;padding:18px 28px;background:#f7fafc;border-bottom:1px solid #e7edf2}
+  .agency-ficha-kpi-label{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:#718090;font-weight:800}
+  .agency-ficha-kpi-value{font-size:20px;font-weight:900;color:#0f2f4f;margin-top:3px}
+  .agency-ficha-table-wrap{padding:0 28px 26px;overflow:auto}
+  .agency-ficha-table{width:100%;border-collapse:collapse;font-size:13px}
+  .agency-ficha-table th{padding:12px 10px;text-align:left;color:#718090;text-transform:uppercase;letter-spacing:1px;font-size:9px;border-bottom:1px solid #dfe7ee}
+  .agency-ficha-table th:last-child,.agency-ficha-table td:last-child{text-align:right}
+  .agency-ficha-table td{padding:12px 10px;border-bottom:1px solid #edf0f3;color:#173b5b;font-weight:600}
+  .agency-client-row{cursor:pointer}
+  .agency-client-row:hover{background:#f5f9fc}
+  .agency-client-name{font-weight:800}
+  @media(max-width:720px){.agency-ficha-summary{gap:18px;flex-wrap:wrap}.agency-ficha-head,.agency-ficha-table-wrap{padding-left:18px;padding-right:18px}.agency-table th,.agency-table td{padding:11px 9px}}
+
   .dashboard-screen .icon{margin:0 auto 18px;background:#edf1f4;color:#718090}
   .dashboard-screen h2{margin:0 0 8px}
   @media(max-width:720px){.home-actions{grid-template-columns:1fr}.home-card{min-height:130px;padding:22px}.home-card .icon{width:64px;height:64px;flex-basis:64px;font-size:30px}.home-card h2{font-size:21px}}
 
-  .cliente-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1000;align-items:center;justify-content:center;padding:24px}
+  .cliente-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1200;align-items:center;justify-content:center;padding:24px}
   .cliente-modal.active{display:flex}
   .cliente-modal-card{width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px rgba(16,43,67,.24)}
   .cliente-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px;border-bottom:1px solid var(--border)}
@@ -346,6 +400,22 @@
       </div>
     </div>
 
+    <div id="agenciaModal" class="agency-ficha-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="agenciaModalTitle">
+      <div class="agency-ficha-card">
+        <div class="agency-ficha-head">
+          <div><div class="eyebrow">Ficha de agencia</div><h2 id="agenciaModalTitle">Agencia</h2></div>
+          <button id="agenciaModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha de agencia">×</button>
+        </div>
+        <div id="agenciaFichaSummary" class="agency-ficha-summary"></div>
+        <div class="agency-ficha-table-wrap">
+          <table class="agency-ficha-table">
+            <thead><tr><th>Cliente</th><th>Dirección Comercial</th><th>Gerente</th><th>Forecast</th></tr></thead>
+            <tbody id="agenciaFichaBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <section id="dashboardView" class="view" aria-hidden="true">
       <div class="view-nav">
         <button class="back-btn" type="button" data-back>← Volver al menú</button>
@@ -375,22 +445,45 @@
             <div class="dash-kpi"><div class="dash-kpi-label">Forecast</div><div id="dashTotalForecast" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Forecast vigente</div></div>
             <div class="dash-kpi"><div class="dash-kpi-label">Forecast ponderado</div><div id="dashTotalPonderado" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Considerando probabilidad</div></div>
           </div>
-
-          <div class="dash-section">
-            <div class="dash-section-title"><h3 id="dashboardSummaryTitle">Resumen por Dirección Comercial</h3><span id="dashboardScopeLabel">Todas las direcciones</span></div>
-            <div id="dashboardDirections" class="dir-grid"></div>
+          <div class="dash-view-switch">
+            <span class="dash-view-switch-label">Ver información por</span>
+            <button id="dashboardViewDireccion" class="dash-view-btn active" type="button">Dirección</button>
+            <button id="dashboardViewAgencia" class="dash-view-btn" type="button">Agencia</button>
           </div>
-
-          <div class="dash-section">
-            <div class="dash-section-title"><h3 id="dashboardChartTitle">Forecast por Dirección</h3><span>Millones de MXN</span></div>
-            <div id="dashboardBars" class="bar-list"></div>
+          <div id="dashboardDireccionMode">
+            <div class="dash-section">
+              <div class="dash-section-title"><h3 id="dashboardSummaryTitle">Resumen por Dirección Comercial</h3><span id="dashboardScopeLabel">Todas las direcciones</span></div>
+              <div id="dashboardDirections" class="dir-grid"></div>
+            </div>
+            <div class="dash-section">
+              <div class="dash-section-title"><h3 id="dashboardChartTitle">Forecast por Dirección</h3><span>Millones de MXN</span></div>
+              <div id="dashboardBars" class="bar-list"></div>
+            </div>
           </div>
-
+          <div id="dashboardAgenciaMode" style="display:none">
+            <div class="dash-section">
+              <div class="dash-section-title"><h3>Resumen por Agencia</h3><span>Clientes y Forecast</span></div>
+              <div class="agency-table-wrap">
+                <table class="agency-table">
+                  <thead><tr><th>Agencia</th><th># Clientes</th><th>Forecast</th></tr></thead>
+                  <tbody id="dashboardAgencySummary"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="dash-section">
+              <div class="dash-section-title"><h3>Forecast por Agencia</h3><span>Millones de MXN</span></div>
+              <div class="agency-legend">
+                <span><i class="agency-dot" style="background:#218cc7"></i>LAH</span>
+                <span><i class="agency-dot" style="background:#2f855a"></i>GS</span>
+                <span><i class="agency-dot" style="background:#7c5ac7"></i>BI</span>
+              </div>
+              <div id="dashboardAgencyBars"></div>
+            </div>
+          </div>
           <div class="dash-section">
             <div class="dash-section-title"><h3 id="dashboardStatusTitle">Clientes por Estatus</h3><span>Clientes y Forecast</span></div>
             <div id="dashboardStatusCards" class="status-grid"></div>
           </div>
-
           <div id="dashboardClientsSection" class="dash-section" style="display:none">
             <div class="dash-section-title"><h3 id="dashboardClientsChartTitle">Forecast por Cliente</h3><span>Millones de MXN</span></div>
             <div id="dashboardClientBars" class="client-bar-list"></div>
@@ -575,10 +668,86 @@
     return '--group-color:#718090;--group-bg:#f1f4f6;';
   }
 
+  let dashboardViewMode = 'direccion';
+
   function renderDashboard(){
     const selected = document.getElementById('dashboardDireccion').value;
     const visible = selected ? dashboardClientes.filter(c => c.direccion === selected) : dashboardClientes;
 
+    const totalClientes = visible.length;
+    const totalForecast = sumNumbers(visible,'forecast');
+    const totalPonderado = sumNumbers(visible,'forecastPonderado');
+    document.getElementById('dashTotalClientes').textContent = totalClientes.toLocaleString('es-MX');
+    document.getElementById('dashTotalForecast').textContent = formatForecast(totalForecast);
+    document.getElementById('dashTotalPonderado').textContent = formatForecast(totalPonderado);
+
+    const directionMode = document.getElementById('dashboardDireccionMode');
+    const agencyMode = document.getElementById('dashboardAgenciaMode');
+    const btnDir = document.getElementById('dashboardViewDireccion');
+    const btnAg = document.getElementById('dashboardViewAgencia');
+
+    if (dashboardViewMode === 'agencia') {
+      directionMode.style.display = 'none';
+      agencyMode.style.display = 'block';
+      btnDir.classList.remove('active');
+      btnAg.classList.add('active');
+      renderDashboardByAgency(visible, selected);
+    } else {
+      directionMode.style.display = 'block';
+      agencyMode.style.display = 'none';
+      btnDir.classList.add('active');
+      btnAg.classList.remove('active');
+      renderDashboardByDirection(visible, selected);
+    }
+
+    // Estatus remains visible in both views and follows the selected Dirección.
+    const statusDefinitions = [
+      { key: 'Nuevo', label: 'Nuevo', color: '#218cc7' },
+      { key: 'En seguimiento', label: 'En seguimiento', color: '#d97706' },
+      { key: 'Cerrado', label: 'Cerrado', color: '#2f855a' }
+    ];
+
+    const statusGroups = statusDefinitions.map(status => {
+      const items = visible.filter(c => String(c.estado || '').trim().toLowerCase() === status.key.toLowerCase());
+      return { ...status, clientes: items.length, forecast: sumNumbers(items, 'forecast') };
+    });
+
+    document.getElementById('dashboardStatusTitle').textContent =
+      selected ? `Clientes por Estatus — ${selected}` : 'Clientes por Estatus';
+
+    document.getElementById('dashboardStatusCards').innerHTML = statusGroups.map(s => `
+      <div class="status-card" style="--status-color:${s.color}">
+        <div class="status-name">${s.label}</div>
+        <div class="status-count">${s.clientes.toLocaleString('es-MX')}</div>
+        <div class="status-caption">clientes</div>
+        <div class="status-forecast">${formatForecast(s.forecast)}</div>
+      </div>
+    `).join('');
+
+    const clientsSection = document.getElementById('dashboardClientsSection');
+    const clientBars = document.getElementById('dashboardClientBars');
+    if (selected && dashboardViewMode === 'direccion') {
+      const clients = [...visible].sort((a,b) => Number(b.forecast || 0) - Number(a.forecast || 0));
+      const maxClientForecast = Math.max(...clients.map(c => Number(c.forecast) || 0), 0);
+      document.getElementById('dashboardClientsChartTitle').textContent = `Forecast por Cliente — ${selected}`;
+      clientsSection.style.display = 'block';
+      clientBars.innerHTML = clients.map(c => {
+        const value = Number(c.forecast) || 0;
+        const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+        return `
+          <div class="client-bar-row" style="${getDashboardGroupStyle(gerente, selected)}" title="${c.cliente || 'Cliente'} — ${gerente}">
+            <div class="client-bar-name">${c.cliente || 'Sin nombre'}<small style="color:var(--group-color)">${gerente}</small></div>
+            <div class="client-bar-track"><div class="client-bar-fill" style="width:${maxClientForecast ? (value/maxClientForecast)*100 : 0}%"></div></div>
+            <div class="client-bar-value">${formatForecast(value)}</div>
+          </div>`;
+      }).join('') || '<div class="dash-empty">Sin clientes para esta dirección.</div>';
+    } else {
+      clientsSection.style.display = 'none';
+      clientBars.innerHTML = '';
+    }
+  }
+
+  function renderDashboardByDirection(visible, selected){
     let groups;
     if (selected) {
       const byGerente = {};
@@ -616,12 +785,6 @@
       });
     }
 
-    const totalClientes = visible.length;
-    const totalForecast = sumNumbers(visible,'forecast');
-    const totalPonderado = sumNumbers(visible,'forecastPonderado');
-    document.getElementById('dashTotalClientes').textContent = totalClientes.toLocaleString('es-MX');
-    document.getElementById('dashTotalForecast').textContent = formatForecast(totalForecast);
-    document.getElementById('dashTotalPonderado').textContent = formatForecast(totalPonderado);
     document.getElementById('dashboardScopeLabel').textContent = selected ? `Dirección ${selected}` : 'Todas las direcciones';
     document.getElementById('dashboardSummaryTitle').textContent = selected ? `Resumen por Gerente — ${selected}` : 'Resumen por Dirección Comercial';
     document.getElementById('dashboardChartTitle').textContent = selected ? `Forecast por Gerente — ${selected}` : 'Forecast por Dirección';
@@ -642,52 +805,57 @@
         <div class="bar-track"><div class="bar-fill" style="width:${maxForecast ? (g.forecast/maxForecast)*100 : 0}%"></div></div>
         <div class="bar-value">${formatForecast(g.forecast)}</div>
       </div>`).join('') || '<div class="dash-empty">Sin datos.</div>';
-
-    const statusDefinitions = [
-      { key: 'Nuevo', label: 'Nuevo', color: '#218cc7' },
-      { key: 'En seguimiento', label: 'En seguimiento', color: '#d97706' },
-      { key: 'Cerrado', label: 'Cerrado', color: '#2f855a' }
-    ];
-
-    const statusGroups = statusDefinitions.map(status => {
-      const items = visible.filter(c => String(c.estado || '').trim().toLowerCase() === status.key.toLowerCase());
-      return { ...status, clientes: items.length, forecast: sumNumbers(items, 'forecast') };
-    });
-
-    document.getElementById('dashboardStatusTitle').textContent =
-      selected ? `Clientes por Estatus — ${selected}` : 'Clientes por Estatus';
-
-    document.getElementById('dashboardStatusCards').innerHTML = statusGroups.map(s => `
-      <div class="status-card" style="--status-color:${s.color}">
-        <div class="status-name">${s.label}</div>
-        <div class="status-count">${s.clientes.toLocaleString('es-MX')}</div>
-        <div class="status-caption">clientes</div>
-        <div class="status-forecast">${formatForecast(s.forecast)}</div>
-      </div>
-    `).join('');
-
-    const clientsSection = document.getElementById('dashboardClientsSection');
-    const clientBars = document.getElementById('dashboardClientBars');
-    if (selected) {
-      const clients = [...visible].sort((a,b) => Number(b.forecast || 0) - Number(a.forecast || 0));
-      const maxClientForecast = Math.max(...clients.map(c => Number(c.forecast) || 0), 0);
-      document.getElementById('dashboardClientsChartTitle').textContent = `Forecast por Cliente — ${selected}`;
-      clientsSection.style.display = 'block';
-      clientBars.innerHTML = clients.map(c => {
-        const value = Number(c.forecast) || 0;
-        const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
-        return `
-          <div class="client-bar-row" style="${getDashboardGroupStyle(gerente, selected)}" title="${c.cliente || 'Cliente'} — ${gerente}">
-            <div class="client-bar-name">${c.cliente || 'Sin nombre'}<small style="color:var(--group-color)">${gerente}</small></div>
-            <div class="client-bar-track"><div class="client-bar-fill" style="width:${maxClientForecast ? (value/maxClientForecast)*100 : 0}%"></div></div>
-            <div class="client-bar-value">${formatForecast(value)}</div>
-          </div>`;
-      }).join('') || '<div class="dash-empty">Sin clientes para esta dirección.</div>';
-    } else {
-      clientsSection.style.display = 'none';
-      clientBars.innerHTML = '';
-    }
   }
+
+  function renderDashboardByAgency(visible, selected){
+    const byAgency = {};
+    visible.forEach(c => {
+      const agencia = (c.agencia || '').trim() || 'Sin agencia asignada';
+      if (!byAgency[agencia]) byAgency[agencia] = [];
+      byAgency[agencia].push(c);
+    });
+    const agencies = Object.entries(byAgency).map(([label,items]) => {
+      const byDirection = {LAH:[],GS:[],BI:[]};
+      items.forEach(c => { const d=String(c.direccion||'').trim().toUpperCase(); if(byDirection[d]) byDirection[d].push(c); });
+      return {label,items,clientes:items.length,forecast:sumNumbers(items,'forecast'),ponderado:sumNumbers(items,'forecastPonderado'),byDirection};
+    }).sort((a,b)=>b.forecast-a.forecast);
+    window.dashboardAgencyData=agencies;
+    const summary=document.getElementById('dashboardAgencySummary');
+    summary.innerHTML=agencies.map((a,i)=>`<tr class="agency-summary-row" data-agency-index="${i}" tabindex="0" role="button" aria-label="Abrir agencia ${escapeHtml(a.label)}"><td class="agency-name-cell">${escapeHtml(a.label)}</td><td>${a.clientes.toLocaleString('es-MX')}</td><td class="forecast">${formatForecast(a.forecast)}</td></tr>`).join('') || '<tr><td colspan="3" class="consulta-empty">No hay agencias para esta selección.</td></tr>';
+    summary.querySelectorAll('.agency-summary-row').forEach(row=>{const open=()=>openAgenciaFicha(window.dashboardAgencyData[Number(row.dataset.agencyIndex)]);row.addEventListener('click',open);row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});});
+    const maxForecast=Math.max(...agencies.map(a=>a.forecast),0);
+    const bars=document.getElementById('dashboardAgencyBars');
+    bars.innerHTML=agencies.map((a,i)=>{
+      const parts=['LAH','GS','BI'].map(d=>{const value=sumNumbers(a.byDirection[d],'forecast');const width=maxForecast?(value/maxForecast)*100:0;return `<div class="agency-bar-segment" title="${d}: ${formatForecast(value)}" style="width:${width}%;background:${DASHBOARD_DIRECTION_COLORS[d].color}"></div>`;}).join('');
+      return `<div class="agency-bar-row" data-agency-index="${i}" tabindex="0" role="button" aria-label="Abrir agencia ${escapeHtml(a.label)}" title="${escapeHtml(a.label)}"><div><div class="agency-bar-label">${escapeHtml(a.label)}</div><div class="agency-bar-meta">${a.clientes.toLocaleString('es-MX')} clientes</div></div><div class="agency-bar-track">${parts}</div><div class="agency-bar-value">${formatForecast(a.forecast)}</div></div>`;
+    }).join('') || '<div class="dash-empty">Sin datos.</div>';
+    bars.querySelectorAll('.agency-bar-row').forEach(row=>{const open=()=>openAgenciaFicha(window.dashboardAgencyData[Number(row.dataset.agencyIndex)]);row.addEventListener('click',open);row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});});
+  }
+
+  function openAgenciaFicha(agency){
+    if(!agency)return;
+    document.getElementById('agenciaModalTitle').textContent=agency.label||'Agencia';
+    document.getElementById('agenciaFichaSummary').innerHTML=`<div><div class="agency-ficha-kpi-label">Clientes</div><div class="agency-ficha-kpi-value">${agency.clientes.toLocaleString('es-MX')}</div></div><div><div class="agency-ficha-kpi-label">Forecast</div><div class="agency-ficha-kpi-value">${formatForecast(agency.forecast)}</div></div>`;
+    const items=[...agency.items].sort((a,b)=>Number(b.forecast||0)-Number(a.forecast||0));
+    const body=document.getElementById('agenciaFichaBody');
+    body.innerHTML=items.map((c,i)=>`<tr class="agency-client-row" tabindex="0" role="button" aria-label="Abrir ficha de ${escapeHtml(c.cliente||'cliente')}"><td class="agency-client-name">${escapeHtml(c.cliente||'—')}</td><td>${escapeHtml(c.direccion||'—')}</td><td>${escapeHtml(c.gerente||'—')}</td><td>${formatForecast(c.forecast)}</td></tr>`).join('') || '<tr><td colspan="4" class="consulta-empty">No hay clientes para esta agencia.</td></tr>';
+    body.querySelectorAll('.agency-client-row').forEach((row,i)=>{const open=()=>openClienteFicha(items[i]);row.addEventListener('click',open);row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});});
+    const modal=document.getElementById('agenciaModal');modal.classList.add('active');modal.setAttribute('aria-hidden','false');document.getElementById('agenciaModalClose').focus();
+  }
+
+  function closeAgenciaFicha(){const modal=document.getElementById('agenciaModal');modal.classList.remove('active');modal.setAttribute('aria-hidden','true');}
+
+
+  document.getElementById('dashboardViewDireccion').addEventListener('click', () => {
+    dashboardViewMode = 'direccion';
+    renderDashboard();
+  });
+  document.getElementById('dashboardViewAgencia').addEventListener('click', () => {
+    dashboardViewMode = 'agencia';
+    renderDashboard();
+  });
+
+  document.getElementById('agenciaModal').addEventListener('click', e => { if(e.target.id==='agenciaModal') closeAgenciaFicha(); });
 
   async function loadDashboard(){
     const loading = document.getElementById('dashboardLoading');
@@ -951,6 +1119,7 @@
   });
 
   document.getElementById('clienteModalClose').addEventListener('click', closeClienteFicha);
+  document.getElementById('agenciaModalClose').addEventListener('click', closeAgenciaFicha);
   document.getElementById('clienteModal').addEventListener('click', event => {
     if (event.target.id === 'clienteModal') closeClienteFicha();
   });
