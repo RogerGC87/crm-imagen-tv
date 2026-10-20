@@ -828,17 +828,20 @@
 
   function openClienteFicha(cliente) {
     const fields = [
-      ['Cliente', cliente.cliente],
-      ['Nombre de contacto', cliente.nombreContacto ?? cliente.nombre_contacto ?? cliente.contacto],
       ['Dirección Comercial', cliente.direccion ?? cliente.direccionComercial ?? cliente.direccion_comercial],
       ['Gerente', cliente.gerente],
-      ['Agencia', cliente.agencia],
-      ['Mail', cliente.mail],
-      ['Teléfono', cliente.telefono ?? cliente.telefonoContacto ?? cliente.telefono_contacto],
-      ['Puesto', cliente.puesto],
-      ['Estado Lead', cliente.estado ?? cliente.estadoLead ?? cliente.estado_lead],
-      ['Origen', cliente.origen],
       ['Forecast', formatForecast(cliente.forecast)],
+      ['Contacto Cliente', cliente.contactoCliente],
+      ['Puesto Cliente', cliente.puestoCliente],
+      ['Mail Cliente', cliente.mailCliente],
+      ['Teléfono Cliente', cliente.telefonoCliente],
+      ['Agencia', cliente.agencia],
+      ['Contacto Agencia', cliente.contactoAgencia],
+      ['Puesto Agencia', cliente.puestoAgencia],
+      ['Mail Agencia', cliente.mailAgencia],
+      ['Teléfono Agencia', cliente.telefonoAgencia],
+      ['Origen', cliente.origen],
+      ['Estatus', cliente.estado ?? cliente.estadoLead ?? cliente.estado_lead],
       ['Probabilidad', formatProbability(cliente.probabilidad)],
       ['Forecast Ponderado', formatForecast(cliente.forecastPonderado ?? cliente.forecast_ponderado)],
       ['Seguimientos', renderSeguimientos(cliente.seguimientos ?? cliente.seguimiento), true]
