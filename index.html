@@ -163,8 +163,10 @@
   .cliente-modal-close:hover{border-color:var(--red);color:var(--red)}
   .cliente-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;padding:24px 28px 30px}
 
-  .cliente-edit-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
+  .cliente-edit-btn,.cliente-followup-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
   .cliente-edit-btn:hover{border-color:var(--blue);color:var(--blue)}
+  .cliente-followup-btn{background:var(--blue);border-color:var(--blue);color:#fff}
+  .cliente-followup-btn:hover{filter:brightness(.95)}
   .cliente-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 28px;border-top:1px solid var(--border);background:#fbfcfd}
   .cliente-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;padding:24px 28px}
   .cliente-form-field{display:flex;flex-direction:column;gap:6px}
@@ -287,6 +289,7 @@
         <div class="cliente-modal-head">
           <div><div class="eyebrow">Ficha de cliente</div><h2 id="clienteModalTitle">Cliente</h2></div>
           <div style="display:flex;gap:10px;align-items:center">
+            <button id="clienteFollowupBtn" class="cliente-followup-btn" type="button">＋ Registrar seguimiento</button>
             <button id="clienteEditBtn" class="cliente-edit-btn" type="button">✏️ Editar cliente</button>
             <button id="clienteModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
           </div>
@@ -370,13 +373,14 @@
   };
   const MASTER_EMAIL = 'roger.guevara@gimm.com.mx';
 
-  function buildFilloutUrl(baseUrl, user, includeDirection = false) {
+  function buildFilloutUrl(baseUrl, user, includeDirection = false, cliente = '') {
     const url = new URL(baseUrl);
     if (user?.email) url.searchParams.set('email', user.email);
     const email = (user?.email || '').toLowerCase();
     if (includeDirection && email !== MASTER_EMAIL && USER_DIRECTIONS[email]) {
       url.searchParams.set('Direccion', USER_DIRECTIONS[email]);
     }
+    if (cliente) url.searchParams.set('Cliente', cliente);
     return url.toString();
   }
 
@@ -551,6 +555,7 @@
     document.getElementById('clienteEditForm').style.display = 'none';
     document.getElementById('clienteDetailGrid').style.display = 'grid';
     document.getElementById('clienteEditBtn').style.display = 'inline-block';
+    document.getElementById('clienteFollowupBtn').style.display = 'inline-block';
     setEditStatus('');
 
     const modal = document.getElementById('clienteModal');
@@ -765,6 +770,7 @@
       document.getElementById('clienteEditForm').style.display = 'none';
       document.getElementById('clienteDetailGrid').style.display = 'grid';
       document.getElementById('clienteEditBtn').style.display = 'inline-block';
+      document.getElementById('clienteFollowupBtn').style.display = 'inline-block';
       await loadConsulta();
       const updated = consultaClientes.find(c => c.id === clienteSeleccionado.id);
       if (updated) openClienteFicha(updated);
@@ -773,6 +779,34 @@
       console.error('Error actualizando cliente:', error);
     } finally {
       saveBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('clienteFollowupBtn').addEventListener('click', async () => {
+    if (!clienteSeleccionado?.cliente) return;
+
+    const newTab = window.open('about:blank', '_blank');
+    if (!newTab) {
+      alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
+      return;
+    }
+    newTab.opener = null;
+
+    try {
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error) throw error;
+
+      const targetUrl = buildFilloutUrl(
+        'https://forms.fillout.com/t/n17f6KbKDVus',
+        data?.user,
+        false,
+        clienteSeleccionado.cliente
+      );
+      newTab.location.replace(targetUrl);
+    } catch (error) {
+      newTab.close();
+      alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
+      console.error('Error al abrir seguimiento:', error);
     }
   });
 
