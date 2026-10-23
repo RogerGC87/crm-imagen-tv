@@ -98,7 +98,16 @@
   .login-btn:hover{background:var(--red-dark)}
   .login-btn:disabled{opacity:.65;cursor:wait}
   .login-error{display:none;margin:14px 0 0;padding:11px 13px;border-radius:10px;background:#fff0f2;color:#b20f22;font-size:13px;line-height:1.4;text-align:left}
+  .login-success{display:none;margin:14px 0 0;padding:11px 13px;border-radius:10px;background:#eef9f3;color:#17663a;font-size:13px;line-height:1.4;text-align:left}
   .login-help{margin:18px 0 0;color:#738292;font-size:12px;line-height:1.5}
+  .forgot-link{display:block;margin:15px 0 0;text-align:center;color:var(--blue);font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}
+  .forgot-link:hover{text-decoration:underline}
+  .auth-panel{display:none;text-align:left}
+  .auth-panel.active{display:block}
+  .auth-panel h2{margin:0 0 8px;color:var(--navy);font-size:22px;letter-spacing:-.3px}
+  .auth-panel p{margin:0 0 18px;color:#617181;font-size:13px;line-height:1.5}
+  .secondary-btn{width:100%;border:1px solid #d6dde3;border-radius:12px;padding:12px 18px;background:#fff;color:var(--navy);font-size:14px;font-weight:800;cursor:pointer;margin-top:10px}
+  .secondary-btn:hover{border-color:var(--blue);color:var(--blue)}
   .portal-wrap{display:none}
   .topbar{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-bottom:10px}
   .user-pill{font-size:12px;color:#617181;background:#fff;border:1px solid var(--border);border-radius:999px;padding:9px 13px;max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -230,8 +239,43 @@
         </div>
         <button id="loginBtn" class="login-btn" type="submit">Iniciar sesión</button>
         <div id="loginError" class="login-error"></div>
+        <a id="forgotPasswordLink" class="forgot-link" href="#">¿Olvidaste tu contraseña?</a>
       </form>
-      <p class="login-help">Acceso exclusivo para usuarios autorizados.</p>
+
+      <div id="forgotPanel" class="auth-panel">
+        <h2>Recupera tu acceso</h2>
+        <p>Ingresa el correo con el que tienes registrada tu cuenta en el CRM. Te enviaremos un enlace para restablecer tu contraseña.</p>
+        <form id="forgotForm" class="login-form">
+          <div class="field">
+            <label for="forgotEmail">Correo electrónico</label>
+            <input id="forgotEmail" type="email" autocomplete="email" required placeholder="correo@empresa.com">
+          </div>
+          <button id="forgotBtn" class="login-btn" type="submit">Enviar enlace</button>
+          <div id="forgotError" class="login-error"></div>
+          <div id="forgotSuccess" class="login-success"></div>
+          <button id="backToLoginBtn" class="secondary-btn" type="button">Volver a iniciar sesión</button>
+        </form>
+      </div>
+
+      <div id="resetPanel" class="auth-panel">
+        <h2>Crea una nueva contraseña</h2>
+        <p>Define una nueva contraseña para recuperar el acceso al CRM Ventas - Imagen TV.</p>
+        <form id="resetForm" class="login-form">
+          <div class="field">
+            <label for="newPassword">Nueva contraseña</label>
+            <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+          </div>
+          <div class="field">
+            <label for="confirmPassword">Confirmar contraseña</label>
+            <input id="confirmPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Repite tu contraseña">
+          </div>
+          <button id="resetBtn" class="login-btn" type="submit">Guardar nueva contraseña</button>
+          <div id="resetError" class="login-error"></div>
+          <div id="resetSuccess" class="login-success"></div>
+        </form>
+      </div>
+
+      <p id="loginHelp" class="login-help">Acceso exclusivo para usuarios autorizados.</p>
     </div>
   </section>
 
@@ -624,6 +668,19 @@
   const loginForm = document.getElementById('loginForm');
   const loginBtn = document.getElementById('loginBtn');
   const loginError = document.getElementById('loginError');
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  const forgotPanel = document.getElementById('forgotPanel');
+  const forgotForm = document.getElementById('forgotForm');
+  const forgotBtn = document.getElementById('forgotBtn');
+  const forgotError = document.getElementById('forgotError');
+  const forgotSuccess = document.getElementById('forgotSuccess');
+  const backToLoginBtn = document.getElementById('backToLoginBtn');
+  const resetPanel = document.getElementById('resetPanel');
+  const resetForm = document.getElementById('resetForm');
+  const resetBtn = document.getElementById('resetBtn');
+  const resetError = document.getElementById('resetError');
+  const resetSuccess = document.getElementById('resetSuccess');
+  const loginHelp = document.getElementById('loginHelp');
   const userPill = document.getElementById('userPill');
   const logoutBtn = document.getElementById('logoutBtn');
   let inactivityTimer = null;
@@ -1028,11 +1085,54 @@
     if (event.key === 'Escape') closeClienteFicha();
   });
 
+  function hideAuthPanels() {
+    loginForm.style.display = 'block';
+    forgotPanel.classList.remove('active');
+    resetPanel.classList.remove('active');
+    loginHelp.style.display = 'block';
+    loginError.style.display = 'none';
+    forgotError.style.display = 'none';
+    forgotSuccess.style.display = 'none';
+    resetError.style.display = 'none';
+    resetSuccess.style.display = 'none';
+  }
+
   function showLogin(errorText = '') {
     authScreen.style.display = 'grid';
     portal.style.display = 'none';
+    hideAuthPanels();
     loginError.textContent = errorText;
     loginError.style.display = errorText ? 'block' : 'none';
+  }
+
+  function showForgotPassword() {
+    authScreen.style.display = 'grid';
+    portal.style.display = 'none';
+    loginForm.style.display = 'none';
+    forgotPanel.classList.add('active');
+    resetPanel.classList.remove('active');
+    loginHelp.style.display = 'none';
+    forgotError.style.display = 'none';
+    forgotSuccess.style.display = 'none';
+    document.getElementById('forgotEmail').value = document.getElementById('email').value.trim();
+    setTimeout(() => document.getElementById('forgotEmail').focus(), 50);
+  }
+
+  function showResetPassword() {
+    authScreen.style.display = 'grid';
+    portal.style.display = 'none';
+    loginForm.style.display = 'none';
+    forgotPanel.classList.remove('active');
+    resetPanel.classList.add('active');
+    loginHelp.style.display = 'none';
+    resetError.style.display = 'none';
+    resetSuccess.style.display = 'none';
+    resetForm.reset();
+    setTimeout(() => document.getElementById('newPassword').focus(), 50);
+  }
+
+  function isRecoveryUrl() {
+    return window.location.hash.includes('type=recovery');
   }
 
   function showPortal(user) {
@@ -1079,6 +1179,88 @@
     }, { passive: true });
   });
 
+  forgotPasswordLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    showForgotPassword();
+  });
+
+  backToLoginBtn.addEventListener('click', () => {
+    forgotForm.reset();
+    showLogin();
+  });
+
+  forgotForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    forgotError.style.display = 'none';
+    forgotSuccess.style.display = 'none';
+    forgotBtn.disabled = true;
+    forgotBtn.textContent = 'Enviando…';
+
+    const email = document.getElementById('forgotEmail').value.trim();
+    try {
+      const redirectTo = window.location.origin + window.location.pathname;
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo
+      });
+      if (error) throw error;
+
+      forgotSuccess.textContent = 'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.';
+      forgotSuccess.style.display = 'block';
+      forgotBtn.textContent = 'Enlace enviado';
+    } catch (error) {
+      console.error('Error al solicitar recuperación:', error);
+      forgotError.textContent = 'No fue posible enviar el enlace. Verifica el correo e inténtalo nuevamente.';
+      forgotError.style.display = 'block';
+      forgotBtn.disabled = false;
+      forgotBtn.textContent = 'Enviar enlace';
+    }
+  });
+
+  resetForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    resetError.style.display = 'none';
+    resetSuccess.style.display = 'none';
+
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (newPassword.length < 6) {
+      resetError.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+      resetError.style.display = 'block';
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      resetError.textContent = 'Las contraseñas no coinciden.';
+      resetError.style.display = 'block';
+      return;
+    }
+
+    resetBtn.disabled = true;
+    resetBtn.textContent = 'Guardando…';
+
+    try {
+      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+
+      resetSuccess.textContent = 'Tu contraseña se actualizó correctamente. Ya puedes iniciar sesión con tu nueva contraseña.';
+      resetSuccess.style.display = 'block';
+      resetForm.reset();
+
+      setTimeout(async () => {
+        await supabaseClient.auth.signOut();
+        window.history.replaceState({}, document.title, window.location.pathname);
+        showLogin();
+      }, 1600);
+    } catch (error) {
+      console.error('Error al actualizar contraseña:', error);
+      resetError.textContent = 'No fue posible actualizar la contraseña. El enlace puede haber expirado; solicita uno nuevo.';
+      resetError.style.display = 'block';
+      resetBtn.disabled = false;
+      resetBtn.textContent = 'Guardar nueva contraseña';
+    }
+  });
+
   loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     loginError.style.display = 'none';
@@ -1107,6 +1289,11 @@
   });
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY' || isRecoveryUrl()) {
+      showResetPassword();
+      return;
+    }
+
     if (session?.user) {
       const last = Number(localStorage.getItem(LAST_ACTIVITY_KEY) || 0);
       if (last && Date.now() - last >= INACTIVITY_MS) {
@@ -1118,6 +1305,10 @@
       showLogin();
     }
   });
+
+  if (isRecoveryUrl()) {
+    showResetPassword();
+  }
 </script>
 </body>
 </html>
