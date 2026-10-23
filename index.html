@@ -613,7 +613,7 @@
       const targetUrl = buildFilloutUrl(baseUrl, data?.user, false, '');
       const formTab = window.open(targetUrl, '_blank', 'noopener');
       if (!formTab) {
-        alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
+        console.warn('El navegador bloqueó la apertura de una nueva pestaña.');
       }
     } catch (error) {
       console.error('Error al abrir el formulario:', error);
@@ -999,7 +999,7 @@
 
     const newTab = window.open('about:blank', '_blank');
     if (!newTab) {
-      alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
+      console.warn('El navegador bloqueó la apertura de una nueva pestaña.');
       return;
     }
     newTab.opener = null;
