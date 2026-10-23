@@ -522,24 +522,22 @@
   function openClienteFicha(cliente) {
     clienteSeleccionado = cliente;
     const fields = [
-      ['Cliente', cliente.cliente],
-      ['Nombre de contacto', getClienteField(cliente, 'nombreContacto', 'contactoCliente', 'nombre_contacto', 'contacto')],
       ['Dirección Comercial', getClienteField(cliente, 'direccion', 'direccionComercial', 'direccion_comercial')],
       ['Gerente', getClienteField(cliente, 'gerente', 'gerenteFinal')],
-      ['Agencia', cliente.agencia],
-      ['Mail', getClienteField(cliente, 'mail', 'mailCliente')],
-      ['Teléfono', getClienteField(cliente, 'telefono', 'telefonoContacto', 'telefono_contacto')],
-      ['Puesto', cliente.puesto],
+      ['Forecast', formatForecast(cliente.forecast)],
+      ['Contacto Cliente', getClienteField(cliente, 'contactoCliente', 'nombreContacto', 'nombre_contacto', 'contacto')],
+      ['Puesto Cliente', getClienteField(cliente, 'puestoCliente', 'puesto')],
+      ['Mail Cliente', getClienteField(cliente, 'mailCliente', 'mail')],
+      ['Teléfono Cliente', getClienteField(cliente, 'telefonoCliente', 'telefono', 'telefonoContacto', 'telefono_contacto')],
+      ['Agencia', getClienteField(cliente, 'agencia')],
       ['Contacto Agencia', getClienteField(cliente, 'contactoAgencia')],
       ['Puesto Agencia', getClienteField(cliente, 'puestoAgencia')],
       ['Mail Agencia', getClienteField(cliente, 'mailAgencia')],
       ['Teléfono Agencia', getClienteField(cliente, 'telefonoAgencia')],
-      ['Estado Lead', getClienteField(cliente, 'estado', 'estadoLead', 'estado_lead')],
-      ['Origen', cliente.origen],
-      ['Forecast', formatForecast(cliente.forecast)],
-      ['Probabilidad', cliente.probabilidad !== undefined && cliente.probabilidad !== null && cliente.probabilidad !== '' ? `${cliente.probabilidad}%` : '—'],
+      ['Origen', getClienteField(cliente, 'origen')],
+      ['Estatus', getClienteField(cliente, 'estado', 'estadoLead', 'estado_lead')],
+      ['Probabilidad', cliente.probabilidad !== undefined && cliente.probabilidad !== null && cliente.probabilidad !== '' ? `${Number(cliente.probabilidad) * (Number(cliente.probabilidad) <= 1 ? 100 : 1)}%` : '—'],
       ['Forecast Ponderado', formatForecast(cliente.forecastPonderado ?? cliente.forecast_ponderado)],
-      ['Próximo Contacto', getClienteField(cliente, 'proximoContacto', 'proximo_contacto')],
       ['Seguimientos', cliente.seguimientos ?? cliente.seguimiento, true]
     ];
 
