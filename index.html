@@ -589,9 +589,7 @@
           const targetUrl = buildFilloutUrl(baseUrl, currentUser, true, clienteAlta);
           const formTab = window.open(targetUrl, '_blank', 'noopener');
           if (!formTab) {
-            const errorBox = document.getElementById('altaModalError');
-            errorBox.textContent = 'Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.';
-            errorBox.style.display = 'block';
+            console.warn('El navegador bloqueó la apertura de una nueva pestaña.');
             return false;
           }
           return true;
