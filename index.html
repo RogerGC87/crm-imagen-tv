@@ -164,7 +164,7 @@
   .alta-modal-body p{margin:0 0 14px;color:#627283;font-size:14px;line-height:1.45}
   .alta-modal-input{width:100%;padding:13px 14px;border:2px solid #cfd8df;border-radius:11px;background:#fff;color:var(--navy);font:inherit;font-size:16px;outline:none}
   .alta-modal-input:focus{border-color:#496da8;box-shadow:0 0 0 4px rgba(73,109,168,.12)}
-  .alta-modal-error{display:none;margin-top:9px;color:#b42318;font-size:13px}
+  .alta-modal-error{display:none;margin-top:9px;color:#b42318;font-size:13px}.alta-modal-status{display:none;margin-top:10px;color:#627283;font-size:13px}
   .alta-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 26px;background:#fbfcfd;border-top:1px solid var(--border)}
   .alta-modal-btn{border-radius:999px;padding:11px 20px;font-weight:700;font-size:14px;cursor:pointer}
   .alta-modal-cancel{border:1px solid #d6dde3;background:#fff;color:var(--navy)}
@@ -310,6 +310,7 @@
         <div class="alta-modal-body">
           <p>Escribe el nombre del cliente que deseas registrar para verificar que no exista previamente en el CRM.</p>
           <input id="altaClienteInput" class="alta-modal-input" type="text" autocomplete="off" placeholder="Nombre del cliente">
+          <div id="altaModalStatus" class="alta-modal-status" aria-live="polite"></div>
           <div id="altaModalError" class="alta-modal-error" role="alert"></div>
         </div>
         <div class="alta-modal-actions">
@@ -423,17 +424,23 @@
     return new Promise((resolve) => {
       const modal = document.getElementById('altaModal');
       const input = document.getElementById('altaClienteInput');
+      const statusBox = document.getElementById('altaModalStatus');
       const errorBox = document.getElementById('altaModalError');
       const confirmBtn = document.getElementById('altaModalConfirm');
       const cancelBtn = document.getElementById('altaModalCancel');
 
-      const cleanup = (value) => {
+      const closeModal = (value) => {
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         input.value = '';
+        input.disabled = false;
+        statusBox.style.display = 'none';
+        statusBox.textContent = '';
         errorBox.style.display = 'none';
         errorBox.textContent = '';
         confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Continuar';
+        cancelBtn.disabled = false;
         resolve(value);
       };
 
@@ -445,15 +452,25 @@
           input.focus();
           return;
         }
-        cleanup(value);
+
+        // Mantener la ventana visible mientras se consulta el CRM.
+        input.disabled = true;
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        confirmBtn.textContent = 'Verificando…';
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+        statusBox.textContent = 'Verificando si el cliente ya existe en el CRM…';
+        statusBox.style.display = 'block';
+        resolve(value);
       };
 
-      const cancel = () => cleanup(null);
+      const cancel = () => closeModal(null);
       confirmBtn.onclick = confirm;
       cancelBtn.onclick = cancel;
       input.onkeydown = (event) => {
         if (event.key === 'Enter') { event.preventDefault(); confirm(); }
-        if (event.key === 'Escape') { event.preventDefault(); cancel(); }
+        if (event.key === 'Escape' && !confirmBtn.disabled) { event.preventDefault(); cancel(); }
       };
 
       modal.classList.add('active');
@@ -494,11 +511,18 @@
         if (checkData.existe) {
           const modal = document.getElementById('altaModal');
           const input = document.getElementById('altaClienteInput');
+          const statusBox = document.getElementById('altaModalStatus');
           const errorBox = document.getElementById('altaModalError');
           const confirmBtn = document.getElementById('altaModalConfirm');
+          const cancelBtn = document.getElementById('altaModalCancel');
+          statusBox.style.display = 'none';
+          statusBox.textContent = '';
           errorBox.textContent = `El cliente "${checkData.cliente || clienteAlta}" ya está registrado en el CRM. No se puede crear un duplicado.`;
           errorBox.style.display = 'block';
+          input.disabled = false;
           confirmBtn.disabled = false;
+          confirmBtn.textContent = 'Continuar';
+          cancelBtn.disabled = false;
           modal.classList.add('active');
           modal.setAttribute('aria-hidden', 'false');
           input.focus();
@@ -511,13 +535,23 @@
       window.location.href = targetUrl;
     } catch (error) {
       const modal = document.getElementById('altaModal');
+      const input = document.getElementById('altaClienteInput');
+      const statusBox = document.getElementById('altaModalStatus');
       const errorBox = document.getElementById('altaModalError');
+      const confirmBtn = document.getElementById('altaModalConfirm');
+      const cancelBtn = document.getElementById('altaModalCancel');
       if (includeDirection) {
         modal.classList.add('active');
         modal.setAttribute('aria-hidden', 'false');
+        statusBox.style.display = 'none';
+        statusBox.textContent = '';
         errorBox.textContent = 'No se pudo validar el cliente. Vuelve a intentarlo.';
         errorBox.style.display = 'block';
-        document.getElementById('altaClienteInput').focus();
+        input.disabled = false;
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Continuar';
+        cancelBtn.disabled = false;
+        input.focus();
       } else {
         alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
       }
