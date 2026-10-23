@@ -1416,7 +1416,7 @@
   const RECOVERY_FLOW = (() => {
     const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
     const queryParams = new URLSearchParams(window.location.search);
-    return hashParams.get('type') === 'recovery' || queryParams.get('type') === 'recovery';
+    return hashParams.get('type') === 'recovery' || queryParams.get('type') === 'recovery' || queryParams.get('recovery') === '1';
   })();
 
   function isRecoveryUrl() {
@@ -1486,7 +1486,7 @@
 
     const email = document.getElementById('forgotEmail').value.trim();
     try {
-      const redirectTo = 'https://rogergc87.github.io/crm-imagen-tv/';
+      const redirectTo = 'https://rogergc87.github.io/crm-imagen-tv/?recovery=1';
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
         redirectTo
       });
