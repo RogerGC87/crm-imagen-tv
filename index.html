@@ -188,20 +188,6 @@
   .cliente-detail-label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#718090;font-weight:700;margin-bottom:5px}
   .cliente-detail-value{font-size:15px;color:var(--navy);font-weight:600;overflow-wrap:anywhere}
   .cliente-detail-value.muted{font-weight:400;color:#627283}
-  .seguimientos-list{display:flex;flex-direction:column;gap:12px;margin-top:6px}
-  .seguimiento-card{border:1px solid #e2e7ec;border-radius:14px;background:#fbfcfd;padding:14px 16px}
-  .seguimiento-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap}
-  .seguimiento-actividad{font-size:15px;font-weight:800;color:var(--navy)}
-  .seguimiento-fecha{font-size:12px;color:#718090;white-space:nowrap}
-  .seguimiento-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px}
-  .seguimiento-meta-item{font-size:13px;color:#526273;line-height:1.35}
-  .seguimiento-meta-label{font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#8a97a4;font-weight:700;display:block;margin-bottom:2px}
-  .seguimiento-files{margin-top:12px;padding-top:10px;border-top:1px solid #edf0f3}
-  .seguimiento-files-title{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:#718090;font-weight:700;margin-bottom:7px}
-  .seguimiento-file-list{display:flex;flex-direction:column;gap:6px}
-  .seguimiento-file{display:inline-flex;align-items:center;gap:7px;width:max-content;max-width:100%;padding:7px 10px;border-radius:9px;background:#eef7fc;color:#176d9d;text-decoration:none;font-size:12px;font-weight:700;overflow-wrap:anywhere}
-  .seguimiento-file:hover{background:#e2f1f9;color:#125a82}
-  @media(max-width:720px){.seguimiento-meta{grid-template-columns:1fr}}
   .consulta-table tbody tr.cliente-row{cursor:pointer;pointer-events:auto}
   .consulta-table tbody tr.cliente-row td{pointer-events:auto}
   .consulta-table tbody tr.cliente-row:focus-within,.consulta-table tbody tr.cliente-row:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:-2px}
@@ -402,6 +388,21 @@
     // Prevent the original link from opening without the user's parameters.
     event.preventDefault();
 
+    let clienteAlta = '';
+
+    // Antes de abrir el Alta, pedimos el nombre del cliente y lo validamos
+    // contra Notion. Si ya existe, no abrimos Fillout.
+    if (includeDirection) {
+      clienteAlta = window.prompt('Escribe el nombre del cliente que quieres dar de alta:');
+      if (clienteAlta === null) return;
+      clienteAlta = clienteAlta.trim();
+
+      if (!clienteAlta) {
+        alert('Debes escribir el nombre del cliente.');
+        return;
+      }
+    }
+
     // Open the tab synchronously during the click so the browser doesn't
     // block it while Supabase retrieves the authenticated user.
     const newTab = window.open('about:blank', '_blank');
@@ -415,12 +416,35 @@
       const { data, error } = await supabaseClient.auth.getUser();
       if (error) throw error;
 
-      const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection);
+      if (includeDirection) {
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError || !sessionData.session) throw new Error('Sesión no disponible.');
+
+        const checkUrl = `${NOTION_FUNCTION_URL}?checkCliente=${encodeURIComponent(clienteAlta)}`;
+        const checkResponse = await fetch(checkUrl, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            apikey: SUPABASE_PUBLISHABLE_KEY
+          }
+        });
+
+        const checkData = await checkResponse.json();
+        if (!checkResponse.ok) throw new Error(checkData.error || 'No fue posible validar el cliente.');
+
+        if (checkData.existe) {
+          newTab.close();
+          alert(`El cliente "${checkData.cliente || clienteAlta}" ya está registrado en el CRM.\n\nNo se puede crear un duplicado.`);
+          return;
+        }
+      }
+
+      const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, clienteAlta);
       newTab.location.replace(targetUrl);
     } catch (error) {
       newTab.close();
-      alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
-      console.error('Error al abrir el formulario:', error);
+      alert('No se pudo validar el cliente. Vuelve a intentarlo.');
+      console.error('Error al validar/abrir el formulario:', error);
     }
   }
 
@@ -506,81 +530,6 @@
     consultaStatus.textContent = `${rows.length} cliente${rows.length === 1 ? '' : 's'}`;
   }
 
-  function safeFileUrl(url) {
-    if (!url) return '';
-    try {
-      const parsed = new URL(String(url), window.location.href);
-      return ['http:', 'https:'].includes(parsed.protocol) ? parsed.href : '';
-    } catch {
-      return '';
-    }
-  }
-
-  function renderSeguimientos(value) {
-    if (!Array.isArray(value) || !value.length) return '—';
-
-    return `<div class="seguimientos-list">${value.map((s, index) => {
-      const actividad = s?.actividad || s?.activity || `Seguimiento ${index + 1}`;
-      const fecha = s?.fecha || s?.date || '';
-      const tipo = s?.tipo || s?.type || '';
-      const resultado = s?.resultado || s?.result || '';
-      const proximaAccion = s?.proximaAccion || s?.proxima_accion || s?.nextAction || '';
-      const proximoContacto = s?.proximoContacto || s?.proximo_contacto || s?.nextContact || '';
-
-      const fileGroups = [
-        { label: 'Presentación', files: Array.isArray(s?.presentacion) ? s.presentacion : [] },
-        { label: 'Propuesta / Negociación', files: Array.isArray(s?.archivos) ? s.archivos : [] },
-        { label: 'Carta Negociación', files: Array.isArray(s?.cartaNegociacion) ? s.cartaNegociacion : [] }
-      ];
-
-      const filesHtml = fileGroups.map(group => {
-        const validFiles = group.files
-          .map(file => ({
-            nombre: file?.nombre || file?.name || 'Archivo',
-            url: safeFileUrl(file?.url || file?.file?.url || file?.external?.url || '')
-          }))
-          .filter(file => file.url);
-
-        if (!validFiles.length) return '';
-
-        return `
-          <div class="seguimiento-files">
-            <div class="seguimiento-files-title">${escapeHtml(group.label)}</div>
-            <div class="seguimiento-file-list">
-              ${validFiles.map(file => `
-                <a class="seguimiento-file" href="${escapeHtml(file.url)}" target="_blank" rel="noopener noreferrer">
-                  📎 ${escapeHtml(file.nombre)}
-                </a>`).join('')}
-            </div>
-          </div>`;
-      }).join('');
-
-      const meta = [
-        ['Tipo', tipo],
-        ['Resultado', resultado],
-        ['Próxima acción', proximaAccion],
-        ['Próximo contacto', proximoContacto]
-      ].filter(([, item]) => item !== undefined && item !== null && item !== '');
-
-      return `
-        <div class="seguimiento-card">
-          <div class="seguimiento-head">
-            <div class="seguimiento-actividad">${escapeHtml(actividad)}</div>
-            ${fecha ? `<div class="seguimiento-fecha">${escapeHtml(fecha)}</div>` : ''}
-          </div>
-          ${meta.length ? `
-            <div class="seguimiento-meta">
-              ${meta.map(([label, item]) => `
-                <div class="seguimiento-meta-item">
-                  <span class="seguimiento-meta-label">${escapeHtml(label)}</span>
-                  ${escapeHtml(formatDetailValue(item))}
-                </div>`).join('')}
-            </div>` : ''}
-          ${filesHtml}
-        </div>`;
-    }).join('')}</div>`;
-  }
-
   function formatDetailValue(value) {
     if (value === null || value === undefined || value === '') return '—';
     if (Array.isArray(value)) {
@@ -635,18 +584,11 @@
     ];
 
     document.getElementById('clienteModalTitle').textContent = cliente.cliente || 'Cliente';
-    document.getElementById('clienteDetailGrid').innerHTML = fields.map(([label, value, full]) => {
-      const isSeguimientos = label === 'Seguimientos';
-      const renderedValue = isSeguimientos
-        ? renderSeguimientos(value)
-        : escapeHtml(formatDetailValue(value));
-
-      return `
+    document.getElementById('clienteDetailGrid').innerHTML = fields.map(([label, value, full]) => `
       <div class="cliente-detail-item${full ? ' full' : ''}">
         <span class="cliente-detail-label">${escapeHtml(label)}</span>
-        <div class="cliente-detail-value${value === undefined || value === null || value === '' ? ' muted' : ''}">${renderedValue}</div>
-      </div>`;
-    }).join('');
+        <div class="cliente-detail-value${value === undefined || value === null || value === '' ? ' muted' : ''}">${escapeHtml(formatDetailValue(value))}</div>
+      </div>`).join('');
 
     document.getElementById('clienteEditForm').style.display = 'none';
     document.getElementById('clienteDetailGrid').style.display = 'grid';
