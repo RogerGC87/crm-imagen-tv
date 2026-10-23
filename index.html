@@ -301,6 +301,24 @@
       </div>
     </section>
 
+    <div id="altaModal" class="alta-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="altaModalTitle">
+      <div class="alta-modal-card">
+        <div class="alta-modal-head">
+          <div class="alta-modal-eyebrow">CRM VENTAS · IMAGEN TV</div>
+          <h2 id="altaModalTitle">Alta de nuevo cliente</h2>
+        </div>
+        <div class="alta-modal-body">
+          <p>Escribe el nombre del cliente que deseas registrar para verificar que no exista previamente en el CRM.</p>
+          <input id="altaClienteInput" class="alta-modal-input" type="text" autocomplete="off" placeholder="Nombre del cliente">
+          <div id="altaModalError" class="alta-modal-error" role="alert"></div>
+        </div>
+        <div class="alta-modal-actions">
+          <button id="altaModalCancel" class="alta-modal-btn alta-modal-cancel" type="button">Cancelar</button>
+          <button id="altaModalConfirm" class="alta-modal-btn alta-modal-confirm" type="button">Continuar</button>
+        </div>
+      </div>
+    </div>
+
     <div id="clienteModal" class="cliente-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="clienteModalTitle">
       <div class="cliente-modal-card">
         <div class="cliente-modal-head">
