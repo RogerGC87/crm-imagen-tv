@@ -711,10 +711,10 @@
     });
   }
 
-  async function openFillout(event, baseUrl, includeDirection) {
+  async function openFillout(event, baseUrl, includeDirection, validateAlta = false) {
     event.preventDefault();
 
-    if (includeDirection) {
+    if (includeDirection && validateAlta) {
       // Para Alta, la nueva pestaña se abre directamente desde el clic de
       // "Continuar", después de que la validación ya terminó. Así evitamos
       // tanto la pestaña about:blank como el bloqueo de popups por async/await.
@@ -743,7 +743,7 @@
       const { data, error } = await supabaseClient.auth.getUser();
       if (error) throw error;
 
-      const targetUrl = buildFilloutUrl(baseUrl, data?.user, false, '');
+      const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, '');
       const formTab = window.open(targetUrl, '_blank');
       if (!formTab) {
         console.warn('El navegador bloqueó la apertura de una nueva pestaña.');
@@ -809,7 +809,8 @@
     link.addEventListener('click', (event) => {
       const formType = link.dataset.form;
       const includeDirection = formType === 'alta' || formType === 'seguimiento';
-      openFillout(event, link.href, includeDirection);
+      const validateAlta = formType === 'alta';
+      openFillout(event, link.href, includeDirection, validateAlta);
     });
   });
 
