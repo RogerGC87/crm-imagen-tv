@@ -587,7 +587,7 @@
         try {
           if (!currentUser) throw new Error('Sesión no disponible.');
           const targetUrl = buildFilloutUrl(baseUrl, currentUser, true, clienteAlta);
-          const formTab = window.open(targetUrl, '_blank', 'noopener');
+          const formTab = window.open(targetUrl, '_blank');
           if (!formTab) {
             console.warn('El navegador bloqueó la apertura de una nueva pestaña.');
             return false;
@@ -609,7 +609,7 @@
       if (error) throw error;
 
       const targetUrl = buildFilloutUrl(baseUrl, data?.user, false, '');
-      const formTab = window.open(targetUrl, '_blank', 'noopener');
+      const formTab = window.open(targetUrl, '_blank');
       if (!formTab) {
         console.warn('El navegador bloqueó la apertura de una nueva pestaña.');
       }
