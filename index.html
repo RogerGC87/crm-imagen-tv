@@ -420,7 +420,7 @@
     return url.toString();
   }
 
-  function pedirNombreCliente() {
+  function pedirNombreCliente(onValidated) {
     return new Promise((resolve) => {
       const modal = document.getElementById('altaModal');
       const input = document.getElementById('altaClienteInput');
@@ -428,8 +428,105 @@
       const errorBox = document.getElementById('altaModalError');
       const confirmBtn = document.getElementById('altaModalConfirm');
       const cancelBtn = document.getElementById('altaModalCancel');
+      let debounceTimer = null;
+      let validationRequest = 0;
+      let validationState = 'empty'; // empty | checking | valid | duplicate | error
+      let lastValidatedName = '';
+
+      const getSession = async () => {
+        const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+        if (sessionError || !sessionData.session) throw new Error('Sesión no disponible.');
+        return sessionData.session;
+      };
+
+      const validateName = async (name) => {
+        const requestId = ++validationRequest;
+        validationState = 'checking';
+        lastValidatedName = name;
+        input.disabled = false;
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = false;
+        confirmBtn.textContent = 'Verificando…';
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+        statusBox.textContent = 'Verificando si el cliente ya existe en el CRM…';
+        statusBox.style.display = 'block';
+
+        try {
+          const session = await getSession();
+          const checkUrl = `${NOTION_FUNCTION_URL}?checkCliente=${encodeURIComponent(name)}`;
+          const response = await fetch(checkUrl, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${session.access_token}`,
+              apikey: SUPABASE_PUBLISHABLE_KEY
+            }
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'No fue posible validar el cliente.');
+          if (requestId !== validationRequest || input.value.trim() !== name) return;
+
+          if (data.existe) {
+            validationState = 'duplicate';
+            statusBox.style.display = 'none';
+            errorBox.textContent = `El cliente "${data.cliente || name}" ya está registrado en el CRM. No se puede crear un duplicado.`;
+            errorBox.style.display = 'block';
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Continuar';
+          } else {
+            validationState = 'valid';
+            statusBox.textContent = 'Cliente disponible para registro.';
+            statusBox.style.display = 'block';
+            errorBox.style.display = 'none';
+            confirmBtn.disabled = false;
+            confirmBtn.textContent = 'Continuar';
+          }
+        } catch (error) {
+          if (requestId !== validationRequest || input.value.trim() !== name) return;
+          console.error('Error al validar el cliente:', error);
+          validationState = 'error';
+          statusBox.style.display = 'none';
+          errorBox.textContent = 'No se pudo validar el cliente. Vuelve a intentarlo.';
+          errorBox.style.display = 'block';
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Continuar';
+        }
+      };
+
+      const scheduleValidation = () => {
+        const value = input.value.trim();
+        validationRequest++;
+        validationState = value ? 'checking' : 'empty';
+        lastValidatedName = '';
+        clearTimeout(debounceTimer);
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+
+        if (!value) {
+          statusBox.style.display = 'none';
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Continuar';
+          return;
+        }
+
+        if (value.length < 2) {
+          statusBox.textContent = 'Escribe al menos 2 caracteres para verificar.';
+          statusBox.style.display = 'block';
+          confirmBtn.disabled = true;
+          confirmBtn.textContent = 'Continuar';
+          return;
+        }
+
+        statusBox.textContent = 'Verificando…';
+        statusBox.style.display = 'block';
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Verificando…';
+        debounceTimer = setTimeout(() => validateName(value), 600);
+      };
 
       const closeModal = (value) => {
+        clearTimeout(debounceTimer);
+        validationRequest++;
         modal.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         input.value = '';
@@ -452,22 +549,21 @@
           input.focus();
           return;
         }
-
-        // Mantener la ventana visible mientras se consulta el CRM.
-        input.disabled = true;
-        confirmBtn.disabled = true;
-        cancelBtn.disabled = true;
-        confirmBtn.textContent = 'Verificando…';
-        errorBox.style.display = 'none';
-        errorBox.textContent = '';
-        statusBox.textContent = 'Verificando si el cliente ya existe en el CRM…';
-        statusBox.style.display = 'block';
-        resolve(value);
+        if (validationState !== 'valid' || lastValidatedName !== value) {
+          scheduleValidation();
+          input.focus();
+          return;
+        }
+        const opened = typeof onValidated === 'function' ? onValidated(value) : false;
+        if (opened) {
+          closeModal(value);
+        }
       };
 
       const cancel = () => closeModal(null);
       confirmBtn.onclick = confirm;
       cancelBtn.onclick = cancel;
+      input.oninput = scheduleValidation;
       input.onkeydown = (event) => {
         if (event.key === 'Enter') { event.preventDefault(); confirm(); }
         if (event.key === 'Escape' && !confirmBtn.disabled) { event.preventDefault(); cancel(); }
@@ -475,6 +571,7 @@
 
       modal.classList.add('active');
       modal.setAttribute('aria-hidden', 'false');
+      confirmBtn.disabled = true;
       setTimeout(() => input.focus(), 50);
     });
   }
@@ -482,155 +579,45 @@
   async function openFillout(event, baseUrl, includeDirection) {
     event.preventDefault();
 
-    // Los formularios deben abrirse en una pestaña nueva para no perder el CRM.
-    // La pestaña se abre desde el clic del usuario para evitar que el navegador
-    // bloquee la apertura después de las consultas asíncronas.
-    const formTab = window.open('about:blank', '_blank');
-    if (!formTab) {
-      alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
-      return;
-    }
-    formTab.opener = null;
-
-    let clienteAlta = '';
     if (includeDirection) {
-      clienteAlta = await pedirNombreCliente();
-      if (clienteAlta === null) {
-        formTab.close();
-        return;
-      }
+      // Para Alta, la nueva pestaña se abre directamente desde el clic de
+      // "Continuar", después de que la validación ya terminó. Así evitamos
+      // tanto la pestaña about:blank como el bloqueo de popups por async/await.
+      pedirNombreCliente((clienteAlta) => {
+        try {
+          if (!currentUser) throw new Error('Sesión no disponible.');
+          const targetUrl = buildFilloutUrl(baseUrl, currentUser, true, clienteAlta);
+          const formTab = window.open(targetUrl, '_blank', 'noopener');
+          if (!formTab) {
+            const errorBox = document.getElementById('altaModalError');
+            errorBox.textContent = 'Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.';
+            errorBox.style.display = 'block';
+            return false;
+          }
+          return true;
+        } catch (error) {
+          console.error('Error al abrir el formulario:', error);
+          const errorBox = document.getElementById('altaModalError');
+          errorBox.textContent = 'No se pudo abrir el formulario. Vuelve a intentarlo.';
+          errorBox.style.display = 'block';
+          return false;
+        }
+      });
+      return;
     }
 
     try {
       const { data, error } = await supabaseClient.auth.getUser();
       if (error) throw error;
 
-      if (includeDirection) {
-        const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
-        if (sessionError || !sessionData.session) throw new Error('Sesión no disponible.');
-
-        const checkUrl = `${NOTION_FUNCTION_URL}?checkCliente=${encodeURIComponent(clienteAlta)}`;
-        const checkResponse = await fetch(checkUrl, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${sessionData.session.access_token}`,
-            apikey: SUPABASE_PUBLISHABLE_KEY
-          }
-        });
-
-        const checkData = await checkResponse.json();
-        if (!checkResponse.ok) throw new Error(checkData.error || 'No fue posible validar el cliente.');
-
-        if (checkData.existe) {
-          const modal = document.getElementById('altaModal');
-          const input = document.getElementById('altaClienteInput');
-          const statusBox = document.getElementById('altaModalStatus');
-          const errorBox = document.getElementById('altaModalError');
-          const confirmBtn = document.getElementById('altaModalConfirm');
-          const cancelBtn = document.getElementById('altaModalCancel');
-          statusBox.style.display = 'none';
-          statusBox.textContent = '';
-          errorBox.textContent = `El cliente "${checkData.cliente || clienteAlta}" ya está registrado en el CRM. No se puede crear un duplicado.`;
-          errorBox.style.display = 'block';
-          input.disabled = false;
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = 'Continuar';
-          cancelBtn.disabled = false;
-          modal.classList.add('active');
-          modal.setAttribute('aria-hidden', 'false');
-          input.focus();
-
-          // La consulta terminó. Permitir una nueva búsqueda sin cerrar la ventana.
-          // Reabrimos el flujo de captura/validación con el mismo modal.
-          confirmBtn.onclick = async () => {
-            const nuevoCliente = input.value.trim();
-            if (!nuevoCliente) {
-              errorBox.textContent = 'Escribe el nombre del cliente para continuar.';
-              errorBox.style.display = 'block';
-              input.focus();
-              return;
-            }
-
-            input.disabled = true;
-            confirmBtn.disabled = true;
-            cancelBtn.disabled = true;
-            confirmBtn.textContent = 'Verificando…';
-            errorBox.style.display = 'none';
-            statusBox.textContent = 'Verificando si el cliente ya existe en el CRM…';
-            statusBox.style.display = 'block';
-
-            try {
-              const { data: retrySessionData, error: retrySessionError } = await supabaseClient.auth.getSession();
-              if (retrySessionError || !retrySessionData.session) throw new Error('Sesión no disponible.');
-
-              const retryUrl = `${NOTION_FUNCTION_URL}?checkCliente=${encodeURIComponent(nuevoCliente)}`;
-              const retryResponse = await fetch(retryUrl, {
-                method: 'GET',
-                headers: {
-                  Authorization: `Bearer ${retrySessionData.session.access_token}`,
-                  apikey: SUPABASE_PUBLISHABLE_KEY
-                }
-              });
-              const retryData = await retryResponse.json();
-              if (!retryResponse.ok) throw new Error(retryData.error || 'No fue posible validar el cliente.');
-
-              if (retryData.existe) {
-                statusBox.style.display = 'none';
-                errorBox.textContent = `El cliente "${retryData.cliente || nuevoCliente}" ya está registrado en el CRM. No se puede crear un duplicado.`;
-                errorBox.style.display = 'block';
-                input.disabled = false;
-                confirmBtn.disabled = false;
-                cancelBtn.disabled = false;
-                confirmBtn.textContent = 'Continuar';
-                input.focus();
-                return;
-              }
-
-              const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, nuevoCliente);
-              formTab.location.replace(targetUrl);
-            } catch (retryError) {
-              console.error('Error al volver a validar el cliente:', retryError);
-              statusBox.style.display = 'none';
-              errorBox.textContent = 'No se pudo validar el cliente. Vuelve a intentarlo.';
-              errorBox.style.display = 'block';
-              input.disabled = false;
-              confirmBtn.disabled = false;
-              cancelBtn.disabled = false;
-              confirmBtn.textContent = 'Continuar';
-              input.focus();
-            }
-          };
-          formTab.close();
-          return;
-        }
+      const targetUrl = buildFilloutUrl(baseUrl, data?.user, false, '');
+      const formTab = window.open(targetUrl, '_blank', 'noopener');
+      if (!formTab) {
+        alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
       }
-
-      const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, clienteAlta);
-      formTab.location.replace(targetUrl);
     } catch (error) {
-      try { formTab.close(); } catch (_) {}
-      const modal = document.getElementById('altaModal');
-      const input = document.getElementById('altaClienteInput');
-      const statusBox = document.getElementById('altaModalStatus');
-      const errorBox = document.getElementById('altaModalError');
-      const confirmBtn = document.getElementById('altaModalConfirm');
-      const cancelBtn = document.getElementById('altaModalCancel');
-      if (includeDirection) {
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-        statusBox.style.display = 'none';
-        statusBox.textContent = '';
-        errorBox.textContent = 'No se pudo validar el cliente. Vuelve a intentarlo.';
-        errorBox.style.display = 'block';
-        input.disabled = false;
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = 'Continuar';
-        cancelBtn.disabled = false;
-        input.focus();
-      } else {
-        alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
-      }
-      console.error('Error al validar/abrir el formulario:', error);
+      console.error('Error al abrir el formulario:', error);
+      alert('No se pudo abrir el formulario. Vuelve a intentarlo.');
     }
   }
 
@@ -643,6 +630,7 @@
   const logoutBtn = document.getElementById('logoutBtn');
   let inactivityTimer = null;
   let activityWriteTimer = null;
+  let currentUser = null;
 
   const homeView = document.getElementById('homeView');
   const consultaView = document.getElementById('consultaView');
@@ -1050,6 +1038,7 @@
   }
 
   function showPortal(user) {
+    currentUser = user || null;
     authScreen.style.display = 'none';
     portal.style.display = 'block';
     userPill.textContent = user?.email || 'Usuario autorizado';
