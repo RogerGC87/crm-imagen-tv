@@ -510,6 +510,7 @@
   }
 
   let clienteSeleccionado = null;
+  let clienteEditOriginal = {};
 
   function getClienteField(cliente, ...keys) {
     for (const key of keys) {
@@ -561,21 +562,37 @@
   }
 
   function populateEditForm(cliente) {
+    const values = {
+      'Contacto Cliente': getClienteField(cliente, 'nombreContacto', 'contactoCliente', 'nombre_contacto', 'contacto'),
+      'Puesto Cliente': getClienteField(cliente, 'puestoCliente', 'puesto'),
+      'Mail Cliente': getClienteField(cliente, 'mailCliente', 'mail'),
+      'Teléfono Cliente': getClienteField(cliente, 'telefonoCliente', 'telefono', 'telefonoContacto', 'telefono_contacto'),
+      'Agencia': getClienteField(cliente, 'agencia'),
+      'Contacto Agencia': getClienteField(cliente, 'contactoAgencia'),
+      'Puesto Agencia': getClienteField(cliente, 'puestoAgencia'),
+      'Mail Agencia': getClienteField(cliente, 'mailAgencia'),
+      'Teléfono Agencia': getClienteField(cliente, 'telefonoAgencia'),
+      'Origen': getClienteField(cliente, 'origen'),
+      'Próximo Contacto': getClienteField(cliente, 'proximoContacto', 'proximo_contacto')
+    };
+
     document.getElementById('editCliente').value = getClienteField(cliente, 'cliente');
     document.getElementById('editDireccion').value = getClienteField(cliente, 'direccion', 'direccionComercial', 'direccion_comercial');
     document.getElementById('editGerente').value = getClienteField(cliente, 'gerente', 'gerenteFinal');
-    document.getElementById('editContacto').value = getClienteField(cliente, 'nombreContacto', 'contactoCliente', 'nombre_contacto', 'contacto');
-    document.getElementById('editPuesto').value = getClienteField(cliente, 'puesto');
-    document.getElementById('editMail').value = getClienteField(cliente, 'mail', 'mailCliente');
-    document.getElementById('editTelefono').value = getClienteField(cliente, 'telefono', 'telefonoContacto', 'telefono_contacto');
-    document.getElementById('editAgencia').value = getClienteField(cliente, 'agencia');
-    document.getElementById('editContactoAgencia').value = getClienteField(cliente, 'contactoAgencia');
-    document.getElementById('editPuestoAgencia').value = getClienteField(cliente, 'puestoAgencia');
-    document.getElementById('editMailAgencia').value = getClienteField(cliente, 'mailAgencia');
-    document.getElementById('editTelefonoAgencia').value = getClienteField(cliente, 'telefonoAgencia');
-    document.getElementById('editOrigen').value = getClienteField(cliente, 'origen');
+    document.getElementById('editContacto').value = values['Contacto Cliente'];
+    document.getElementById('editPuesto').value = values['Puesto Cliente'];
+    document.getElementById('editMail').value = values['Mail Cliente'];
+    document.getElementById('editTelefono').value = values['Teléfono Cliente'];
+    document.getElementById('editAgencia').value = values['Agencia'];
+    document.getElementById('editContactoAgencia').value = values['Contacto Agencia'];
+    document.getElementById('editPuestoAgencia').value = values['Puesto Agencia'];
+    document.getElementById('editMailAgencia').value = values['Mail Agencia'];
+    document.getElementById('editTelefonoAgencia').value = values['Teléfono Agencia'];
+    document.getElementById('editOrigen').value = values['Origen'];
     document.getElementById('editForecast').value = getClienteField(cliente, 'forecast');
-    document.getElementById('editProximoContacto').value = getClienteField(cliente, 'proximoContacto', 'proximo_contacto');
+    document.getElementById('editProximoContacto').value = values['Próximo Contacto'];
+
+    clienteEditOriginal = { ...values };
   }
 
   function setEditStatus(message, type = '') {
@@ -708,21 +725,32 @@
       // Solo enviamos campos editables.
       // Cliente, Dirección Comercial, Gerente y Forecast quedan bloqueados
       // tanto visualmente como en el payload enviado a Supabase.
+      const currentValues = {
+        'Contacto Cliente': document.getElementById('editContacto').value.trim(),
+        'Puesto Cliente': document.getElementById('editPuesto').value.trim(),
+        'Mail Cliente': document.getElementById('editMail').value.trim(),
+        'Teléfono Cliente': document.getElementById('editTelefono').value.trim(),
+        'Agencia': document.getElementById('editAgencia').value.trim(),
+        'Contacto Agencia': document.getElementById('editContactoAgencia').value.trim(),
+        'Puesto Agencia': document.getElementById('editPuestoAgencia').value.trim(),
+        'Mail Agencia': document.getElementById('editMailAgencia').value.trim(),
+        'Teléfono Agencia': document.getElementById('editTelefonoAgencia').value.trim(),
+        'Origen': document.getElementById('editOrigen').value.trim(),
+        'Próximo Contacto': document.getElementById('editProximoContacto').value || ''
+      };
+
+      // Enviamos únicamente los campos que realmente cambiaron.
+      // Esto evita intentar actualizar propiedades que el usuario no tocó
+      // y, especialmente, evita mandar valores vacíos a propiedades de Notion.
       const payload = {
         action: 'update',
-        id: clienteSeleccionado.id,
-        "Contacto Cliente": document.getElementById('editContacto').value.trim(),
-        "Puesto Cliente": document.getElementById('editPuesto').value.trim(),
-        "Mail Cliente": document.getElementById('editMail').value.trim(),
-        "Teléfono Cliente": document.getElementById('editTelefono').value.trim(),
-        "Agencia": document.getElementById('editAgencia').value.trim(),
-        "Contacto Agencia": document.getElementById('editContactoAgencia').value.trim(),
-        "Puesto Agencia": document.getElementById('editPuestoAgencia').value.trim(),
-        "Mail Agencia": document.getElementById('editMailAgencia').value.trim(),
-        "Teléfono Agencia": document.getElementById('editTelefonoAgencia').value.trim(),
-        "Origen": document.getElementById('editOrigen').value.trim(),
-        "Próximo Contacto": document.getElementById('editProximoContacto').value || ''
+        id: clienteSeleccionado.id
       };
+      for (const [key, value] of Object.entries(currentValues)) {
+        if (String(value) !== String(clienteEditOriginal[key] ?? '')) {
+          payload[key] = value;
+        }
+      }
       const response = await fetch(NOTION_FUNCTION_URL, {
         method: 'POST',
         headers: {
