@@ -1308,7 +1308,13 @@
 
   function formatForecast(value) {
     if (value === null || value === undefined || value === '') return '—';
-    return new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN', maximumFractionDigits:0 }).format(Number(value));
+    const millions = Number(value) / 1000000;
+    return new Intl.NumberFormat('es-MX', {
+      style:'currency',
+      currency:'MXN',
+      minimumFractionDigits:1,
+      maximumFractionDigits:1
+    }).format(millions) + ' M';
   }
 
   function renderConsulta() {
