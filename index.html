@@ -482,10 +482,23 @@
   async function openFillout(event, baseUrl, includeDirection) {
     event.preventDefault();
 
+    // Los formularios deben abrirse en una pestaña nueva para no perder el CRM.
+    // La pestaña se abre desde el clic del usuario para evitar que el navegador
+    // bloquee la apertura después de las consultas asíncronas.
+    const formTab = window.open('about:blank', '_blank');
+    if (!formTab) {
+      alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
+      return;
+    }
+    formTab.opener = null;
+
     let clienteAlta = '';
     if (includeDirection) {
       clienteAlta = await pedirNombreCliente();
-      if (clienteAlta === null) return;
+      if (clienteAlta === null) {
+        formTab.close();
+        return;
+      }
     }
 
     try {
@@ -574,7 +587,7 @@
               }
 
               const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, nuevoCliente);
-              window.location.href = targetUrl;
+              formTab.location.replace(targetUrl);
             } catch (retryError) {
               console.error('Error al volver a validar el cliente:', retryError);
               statusBox.style.display = 'none';
@@ -587,14 +600,15 @@
               input.focus();
             }
           };
+          formTab.close();
           return;
         }
       }
 
       const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, clienteAlta);
-      // Mismo pestaña: evita abrir una ventana nueva y luego regresar al portal.
-      window.location.href = targetUrl;
+      formTab.location.replace(targetUrl);
     } catch (error) {
+      try { formTab.close(); } catch (_) {}
       const modal = document.getElementById('altaModal');
       const input = document.getElementById('altaClienteInput');
       const statusBox = document.getElementById('altaModalStatus');
