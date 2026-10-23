@@ -84,6 +84,57 @@
     .badge{display:none}
   }
 
+  .dash-wrap{margin-top:8px}
+  .dash-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:20px;flex-wrap:wrap}
+  .dash-head h2{margin:3px 0 5px;font-size:30px}
+  .dash-head .desc{max-width:720px}
+  .dash-filter{display:flex;align-items:center;gap:9px}
+  .dash-filter label{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:#718090;font-weight:800}
+  .dash-filter select{padding:10px 13px;border:1px solid #cfd8df;border-radius:10px;background:#fff;color:var(--navy);font-weight:700;outline:none}
+  .dash-total{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+  .dash-kpi{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px 24px;box-shadow:0 10px 30px rgba(16,43,67,.07);position:relative;overflow:hidden}
+  .dash-kpi:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--blue)}
+  .dash-kpi:nth-child(2):before{background:var(--red)}
+  .dash-kpi:nth-child(3):before{background:#718090}
+  .dash-kpi-label{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:#718090;font-weight:800}
+  .dash-kpi-value{font-size:30px;font-weight:850;color:var(--navy);margin-top:8px;line-height:1.1}
+  .dash-kpi-sub{font-size:12px;color:#8996a3;margin-top:6px}
+  .dash-section{background:#fff;border:1px solid var(--border);border-radius:18px;padding:24px;box-shadow:0 10px 30px rgba(16,43,67,.07);margin-bottom:20px}
+  .dash-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .dash-section-title h3{margin:0;font-size:18px}
+  .dash-section-title span{font-size:11px;color:#8a97a4;text-transform:uppercase;letter-spacing:1.3px;font-weight:700}
+  .dir-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .dir-card{border:1px solid #e0e6eb;border-left:5px solid var(--group-color,#718090);border-radius:16px;padding:20px;background:linear-gradient(180deg,#fff 0%,#f9fbfc 100%);position:relative;overflow:hidden}
+  .dir-card:before{content:"";position:absolute;right:-34px;top:-34px;width:100px;height:100px;border-radius:50%;background:var(--group-bg,#f1f4f6);opacity:.75}
+  .dir-name{font-size:13px;font-weight:900;letter-spacing:2px;color:var(--group-color,var(--navy));text-transform:uppercase;position:relative}
+  .dir-clients{font-size:27px;font-weight:850;margin-top:12px;color:var(--navy);position:relative}
+  .dir-caption{font-size:11px;color:#8794a1;margin-top:2px;position:relative}
+  .dir-forecast{font-size:20px;font-weight:850;color:var(--group-color,var(--blue));margin-top:14px;position:relative}
+  .dir-weighted{font-size:12px;color:#6e7e8d;margin-top:5px}
+  .bar-list{display:grid;gap:15px}
+  .bar-row{display:grid;grid-template-columns:70px 1fr 125px;align-items:center;gap:12px}
+  .bar-label{font-weight:900;color:var(--navy);font-size:13px}
+  .bar-track{height:14px;background:#edf1f4;border-radius:999px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:999px;background:var(--group-color,var(--blue));min-width:2px;transition:width .4s ease}
+  .bar-value{text-align:right;font-weight:800;font-size:13px;color:var(--navy);white-space:nowrap}
+  .dash-empty{text-align:center;padding:40px 20px;color:#7a8998}
+  .status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .status-card{border:1px solid #e0e6eb;border-radius:14px;padding:17px 18px;background:#fff;position:relative;overflow:hidden}
+  .status-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--status-color,#718090)}
+  .status-name{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:9px}
+  .status-count{font-size:28px;font-weight:850;color:var(--navy);line-height:1.05}
+  .status-caption{font-size:11px;color:#8794a2;margin-top:4px}
+  .status-forecast{font-size:16px;font-weight:800;color:var(--status-color,#718090);margin-top:13px}
+  @media(max-width:820px){.status-grid{grid-template-columns:1fr}}
+  .client-bar-list{display:grid;gap:10px;max-height:720px;overflow-y:auto;padding-right:5px}
+  .client-bar-row{display:grid;grid-template-columns:minmax(170px,250px) 1fr 125px;align-items:center;gap:12px}
+  .client-bar-name{font-weight:800;color:var(--navy);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .client-bar-name small{display:block;color:#8a97a4;font-size:10px;font-weight:600;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .client-bar-track{height:12px;background:#edf1f4;border-radius:999px;overflow:hidden}
+  .client-bar-fill{height:100%;border-radius:999px;background:var(--group-color,var(--red));min-width:2px;transition:width .4s ease}
+  .client-bar-value{text-align:right;font-weight:800;font-size:12px;color:var(--navy);white-space:nowrap}
+  @media(max-width:820px){.dash-total,.dir-grid{grid-template-columns:1fr}.bar-row{grid-template-columns:55px 1fr 105px}.client-bar-row{grid-template-columns:120px 1fr 100px}.dash-kpi-value{font-size:27px}}
+
   .auth-screen{min-height:100vh;display:grid;place-items:center;padding:28px;background:linear-gradient(135deg,#f8fafb 0%,#fff 50%,#f4f6f8 100%)}
   .login-card{width:min(460px,100%);background:rgba(255,255,255,.97);border:1px solid var(--border);border-radius:24px;padding:38px;box-shadow:0 18px 50px rgba(16,43,67,.12);text-align:center}
   .login-card .logo{width:min(250px,70%);margin-bottom:22px}
@@ -407,11 +458,51 @@
         <button class="back-btn" type="button" data-back>← Volver al menú</button>
         <div class="view-title">Dashboard</div>
       </div>
-      <div class="dashboard-screen">
-        <div class="icon">📊</div>
-        <h2>Dashboard comercial</h2>
-        <p class="desc">Consulta el desempeño comercial, pipeline y métricas clave.</p>
-        <div class="badge" style="display:inline-block;margin:22px 0 0">PRÓXIMAMENTE</div>
+      <div class="dash-wrap">
+        <div class="dash-head">
+          <div>
+            <div class="eyebrow">Dirección General Comercial</div>
+            <h2>Dashboard comercial</h2>
+            <p class="desc">Resumen ejecutivo de clientes, Forecast y gestión por Dirección Comercial.</p>
+          </div>
+          <div class="dash-filter" id="dashboardFilterWrap" style="display:none">
+            <label for="dashboardDireccion">Dirección</label>
+            <select id="dashboardDireccion">
+              <option value="">Todas</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="dashboardError" class="consulta-error"></div>
+        <div id="dashboardLoading" class="dash-section dash-empty">Cargando información comercial…</div>
+
+        <div id="dashboardContent" style="display:none">
+          <div class="dash-total">
+            <div class="dash-kpi"><div class="dash-kpi-label">Clientes</div><div id="dashTotalClientes" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Clientes registrados</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-label">Forecast</div><div id="dashTotalForecast" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Forecast vigente</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-label">Forecast ponderado</div><div id="dashTotalPonderado" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Considerando probabilidad</div></div>
+          </div>
+
+          <div class="dash-section">
+            <div class="dash-section-title"><h3 id="dashboardSummaryTitle">Resumen por Dirección Comercial</h3><span id="dashboardScopeLabel">Todas las direcciones</span></div>
+            <div id="dashboardDirections" class="dir-grid"></div>
+          </div>
+
+          <div class="dash-section">
+            <div class="dash-section-title"><h3 id="dashboardChartTitle">Forecast por Dirección</h3><span>MXN</span></div>
+            <div id="dashboardBars" class="bar-list"></div>
+          </div>
+
+          <div class="dash-section">
+            <div class="dash-section-title"><h3 id="dashboardStatusTitle">Clientes por Estatus</h3><span>Clientes y Forecast</span></div>
+            <div id="dashboardStatusCards" class="status-grid"></div>
+          </div>
+
+          <div id="dashboardClientsSection" class="dash-section" style="display:none">
+            <div class="dash-section-title"><h3 id="dashboardClientsChartTitle">Forecast por Cliente</h3><span>MXN</span></div>
+            <div id="dashboardClientBars" class="client-bar-list"></div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -701,6 +792,7 @@
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (name === 'consulta') loadConsulta();
+    if (name === 'dashboard') loadDashboard();
   }
 
   // Al iniciar sesión, siempre mostrar primero el menú de 4 botones.
@@ -730,6 +822,193 @@
   const consultaStatus = document.getElementById('consultaStatus');
   const consultaError = document.getElementById('consultaError');
   let consultaClientes = [];
+
+  let dashboardClientes = [];
+
+  function getDashboardUserSession(){
+    return supabaseClient.auth.getSession().then(({data, error}) => {
+      if (error || !data.session) throw new Error('Sesión no disponible.');
+      return data.session;
+    });
+  }
+
+  function sumNumbers(items, field){
+    return items.reduce((sum, item) => {
+      const n = Number(item?.[field]);
+      return sum + (Number.isFinite(n) ? n : 0);
+    }, 0);
+  }
+
+  const DASHBOARD_DIRECTION_COLORS = {
+    LAH: { color: '#218cc7', bg: '#eaf5fb' },
+    GS:  { color: '#2f855a', bg: '#eaf7ef' },
+    BI:  { color: '#7c5ac7', bg: '#f1edfb' }
+  };
+
+  const DASHBOARD_MANAGER_COLORS = [
+    '#218cc7', '#2f855a', '#d97706', '#7c5ac7',
+    '#c2416b', '#0f766e', '#4f46e5', '#64748b',
+    '#b45309', '#15803d', '#be185d', '#0369a1'
+  ];
+
+  function getDashboardGroupStyle(label, selected){
+    if (!selected && DASHBOARD_DIRECTION_COLORS[label]) {
+      const x = DASHBOARD_DIRECTION_COLORS[label];
+      return `--group-color:${x.color};--group-bg:${x.bg};`;
+    }
+    if (selected) {
+      const index = window.dashboardManagerColorIndex?.[label] ?? 0;
+      const color = DASHBOARD_MANAGER_COLORS[index % DASHBOARD_MANAGER_COLORS.length];
+      return `--group-color:${color};--group-bg:${color}18;`;
+    }
+    return '--group-color:#718090;--group-bg:#f1f4f6;';
+  }
+
+  function renderDashboard(){
+    const selected = document.getElementById('dashboardDireccion').value;
+    const visible = selected ? dashboardClientes.filter(c => c.direccion === selected) : dashboardClientes;
+
+    let groups;
+    if (selected) {
+      const byGerente = {};
+      visible.forEach(c => {
+        const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+        if (!byGerente[gerente]) byGerente[gerente] = [];
+        byGerente[gerente].push(c);
+      });
+      groups = Object.entries(byGerente)
+        .map(([gerente, items]) => ({
+          label: gerente,
+          items,
+          clientes: items.length,
+          forecast: sumNumbers(items,'forecast'),
+          ponderado: sumNumbers(items,'forecastPonderado')
+        }))
+        .sort((a,b) => b.forecast - a.forecast);
+    } else {
+      groups = ['LAH','GS','BI'].map(dir => {
+        const items = visible.filter(c => c.direccion === dir);
+        return {
+          label: dir,
+          items,
+          clientes: items.length,
+          forecast: sumNumbers(items,'forecast'),
+          ponderado: sumNumbers(items,'forecastPonderado')
+        };
+      }).filter(g => g.items.length || !selected);
+    }
+
+    window.dashboardManagerColorIndex = {};
+    if (selected) {
+      groups.forEach((g, index) => {
+        window.dashboardManagerColorIndex[g.label] = index;
+      });
+    }
+
+    const totalClientes = visible.length;
+    const totalForecast = sumNumbers(visible,'forecast');
+    const totalPonderado = sumNumbers(visible,'forecastPonderado');
+    document.getElementById('dashTotalClientes').textContent = totalClientes.toLocaleString('es-MX');
+    document.getElementById('dashTotalForecast').textContent = formatForecast(totalForecast);
+    document.getElementById('dashTotalPonderado').textContent = formatForecast(totalPonderado);
+    document.getElementById('dashboardScopeLabel').textContent = selected ? `Dirección ${selected}` : 'Todas las direcciones';
+    document.getElementById('dashboardSummaryTitle').textContent = selected ? `Resumen por Gerente — ${selected}` : 'Resumen por Dirección Comercial';
+    document.getElementById('dashboardChartTitle').textContent = selected ? `Forecast por Gerente — ${selected}` : 'Forecast por Dirección';
+
+    document.getElementById('dashboardDirections').innerHTML = groups.map(g => `
+      <div class="dir-card" style="${getDashboardGroupStyle(g.label, selected)}">
+        <div class="dir-name">${g.label}</div>
+        <div class="dir-clients">${g.clientes.toLocaleString('es-MX')}</div>
+        <div class="dir-caption">clientes</div>
+        <div class="dir-forecast">${formatForecast(g.forecast)}</div>
+        <div class="dir-weighted">Ponderado: ${formatForecast(g.ponderado)}</div>
+      </div>`).join('') || '<div class="dash-empty">No hay información para esta dirección.</div>';
+
+    const maxForecast = Math.max(...groups.map(g => g.forecast), 0);
+    document.getElementById('dashboardBars').innerHTML = groups.map(g => `
+      <div class="bar-row" style="${getDashboardGroupStyle(g.label, selected)}">
+        <div class="bar-label" title="${g.label}">${g.label}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${maxForecast ? (g.forecast/maxForecast)*100 : 0}%"></div></div>
+        <div class="bar-value">${formatForecast(g.forecast)}</div>
+      </div>`).join('') || '<div class="dash-empty">Sin datos.</div>';
+
+    const statusDefinitions = [
+      { key: 'Nuevo', label: 'Nuevo', color: '#218cc7' },
+      { key: 'En seguimiento', label: 'En seguimiento', color: '#d97706' },
+      { key: 'Cerrado', label: 'Cerrado', color: '#2f855a' }
+    ];
+
+    const statusGroups = statusDefinitions.map(status => {
+      const items = visible.filter(c => String(c.estado || '').trim().toLowerCase() === status.key.toLowerCase());
+      return { ...status, clientes: items.length, forecast: sumNumbers(items, 'forecast') };
+    });
+
+    document.getElementById('dashboardStatusTitle').textContent =
+      selected ? `Clientes por Estatus — ${selected}` : 'Clientes por Estatus';
+
+    document.getElementById('dashboardStatusCards').innerHTML = statusGroups.map(s => `
+      <div class="status-card" style="--status-color:${s.color}">
+        <div class="status-name">${s.label}</div>
+        <div class="status-count">${s.clientes.toLocaleString('es-MX')}</div>
+        <div class="status-caption">clientes</div>
+        <div class="status-forecast">${formatForecast(s.forecast)}</div>
+      </div>
+    `).join('');
+
+    const clientsSection = document.getElementById('dashboardClientsSection');
+    const clientBars = document.getElementById('dashboardClientBars');
+    if (selected) {
+      const clients = [...visible].sort((a,b) => Number(b.forecast || 0) - Number(a.forecast || 0));
+      const maxClientForecast = Math.max(...clients.map(c => Number(c.forecast) || 0), 0);
+      document.getElementById('dashboardClientsChartTitle').textContent = `Forecast por Cliente — ${selected}`;
+      clientsSection.style.display = 'block';
+      clientBars.innerHTML = clients.map(c => {
+        const value = Number(c.forecast) || 0;
+        const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+        return `
+          <div class="client-bar-row" style="${getDashboardGroupStyle(gerente, selected)}" title="${c.cliente || 'Cliente'} — ${gerente}">
+            <div class="client-bar-name">${c.cliente || 'Sin nombre'}<small style="color:var(--group-color)">${gerente}</small></div>
+            <div class="client-bar-track"><div class="client-bar-fill" style="width:${maxClientForecast ? (value/maxClientForecast)*100 : 0}%"></div></div>
+            <div class="client-bar-value">${formatForecast(value)}</div>
+          </div>`;
+      }).join('') || '<div class="dash-empty">Sin clientes para esta dirección.</div>';
+    } else {
+      clientsSection.style.display = 'none';
+      clientBars.innerHTML = '';
+    }
+  }
+
+  async function loadDashboard(){
+    const loading = document.getElementById('dashboardLoading');
+    const content = document.getElementById('dashboardContent');
+    const errorBox = document.getElementById('dashboardError');
+    const filterWrap = document.getElementById('dashboardFilterWrap');
+    errorBox.style.display='none'; content.style.display='none'; loading.style.display='block';
+    try{
+      const session = await getDashboardUserSession();
+      const email = (session.user?.email || '').toLowerCase();
+      const isMaster = email === MASTER_EMAIL;
+      filterWrap.style.display = isMaster ? 'flex' : 'none';
+      const select = document.getElementById('dashboardDireccion');
+      if(!isMaster && USER_DIRECTIONS[email]) select.value = USER_DIRECTIONS[email];
+      const params = new URLSearchParams();
+      if(isMaster && select.value) params.set('direccion', select.value);
+      if(!isMaster && USER_DIRECTIONS[email]) params.set('direccion', USER_DIRECTIONS[email]);
+      const response = await fetch(`${NOTION_FUNCTION_URL}?${params.toString()}`, {method:'GET',headers:{Authorization:`Bearer ${session.access_token}`,apikey:SUPABASE_PUBLISHABLE_KEY}});
+      const data = await response.json();
+      if(!response.ok) throw new Error(data.error || 'No fue posible cargar el Dashboard.');
+      dashboardClientes = Array.isArray(data.clientes) ? data.clientes : [];
+      renderDashboard();
+      loading.style.display='none'; content.style.display='block';
+    }catch(error){
+      loading.style.display='none';
+      errorBox.textContent=error.message || 'Error cargando Dashboard.';
+      errorBox.style.display='block';
+    }
+  }
+
+  document.getElementById('dashboardDireccion').addEventListener('change', loadDashboard);
+
 
   function formatForecast(value) {
     if (value === null || value === undefined || value === '') return '—';
