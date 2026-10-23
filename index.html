@@ -526,6 +526,67 @@
           modal.classList.add('active');
           modal.setAttribute('aria-hidden', 'false');
           input.focus();
+
+          // La consulta terminó. Permitir una nueva búsqueda sin cerrar la ventana.
+          // Reabrimos el flujo de captura/validación con el mismo modal.
+          confirmBtn.onclick = async () => {
+            const nuevoCliente = input.value.trim();
+            if (!nuevoCliente) {
+              errorBox.textContent = 'Escribe el nombre del cliente para continuar.';
+              errorBox.style.display = 'block';
+              input.focus();
+              return;
+            }
+
+            input.disabled = true;
+            confirmBtn.disabled = true;
+            cancelBtn.disabled = true;
+            confirmBtn.textContent = 'Verificando…';
+            errorBox.style.display = 'none';
+            statusBox.textContent = 'Verificando si el cliente ya existe en el CRM…';
+            statusBox.style.display = 'block';
+
+            try {
+              const { data: retrySessionData, error: retrySessionError } = await supabaseClient.auth.getSession();
+              if (retrySessionError || !retrySessionData.session) throw new Error('Sesión no disponible.');
+
+              const retryUrl = `${NOTION_FUNCTION_URL}?checkCliente=${encodeURIComponent(nuevoCliente)}`;
+              const retryResponse = await fetch(retryUrl, {
+                method: 'GET',
+                headers: {
+                  Authorization: `Bearer ${retrySessionData.session.access_token}`,
+                  apikey: SUPABASE_PUBLISHABLE_KEY
+                }
+              });
+              const retryData = await retryResponse.json();
+              if (!retryResponse.ok) throw new Error(retryData.error || 'No fue posible validar el cliente.');
+
+              if (retryData.existe) {
+                statusBox.style.display = 'none';
+                errorBox.textContent = `El cliente "${retryData.cliente || nuevoCliente}" ya está registrado en el CRM. No se puede crear un duplicado.`;
+                errorBox.style.display = 'block';
+                input.disabled = false;
+                confirmBtn.disabled = false;
+                cancelBtn.disabled = false;
+                confirmBtn.textContent = 'Continuar';
+                input.focus();
+                return;
+              }
+
+              const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, nuevoCliente);
+              window.location.href = targetUrl;
+            } catch (retryError) {
+              console.error('Error al volver a validar el cliente:', retryError);
+              statusBox.style.display = 'none';
+              errorBox.textContent = 'No se pudo validar el cliente. Vuelve a intentarlo.';
+              errorBox.style.display = 'block';
+              input.disabled = false;
+              confirmBtn.disabled = false;
+              cancelBtn.disabled = false;
+              confirmBtn.textContent = 'Continuar';
+              input.focus();
+            }
+          };
           return;
         }
       }
