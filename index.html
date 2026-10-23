@@ -711,17 +711,17 @@
       const payload = {
         action: 'update',
         id: clienteSeleccionado.id,
-        nombreContacto: document.getElementById('editContacto').value.trim(),
-        puesto: document.getElementById('editPuesto').value.trim(),
-        mail: document.getElementById('editMail').value.trim(),
-        telefono: document.getElementById('editTelefono').value.trim(),
-        agencia: document.getElementById('editAgencia').value.trim(),
-        contactoAgencia: document.getElementById('editContactoAgencia').value.trim(),
-        puestoAgencia: document.getElementById('editPuestoAgencia').value.trim(),
-        mailAgencia: document.getElementById('editMailAgencia').value.trim(),
-        telefonoAgencia: document.getElementById('editTelefonoAgencia').value.trim(),
-        origen: document.getElementById('editOrigen').value.trim(),
-        proximoContacto: document.getElementById('editProximoContacto').value || ''
+        "Contacto Cliente": document.getElementById('editContacto').value.trim(),
+        "Puesto Cliente": document.getElementById('editPuesto').value.trim(),
+        "Mail Cliente": document.getElementById('editMail').value.trim(),
+        "Teléfono Cliente": document.getElementById('editTelefono').value.trim(),
+        "Agencia": document.getElementById('editAgencia').value.trim(),
+        "Contacto Agencia": document.getElementById('editContactoAgencia').value.trim(),
+        "Puesto Agencia": document.getElementById('editPuestoAgencia').value.trim(),
+        "Mail Agencia": document.getElementById('editMailAgencia').value.trim(),
+        "Teléfono Agencia": document.getElementById('editTelefonoAgencia').value.trim(),
+        "Origen": document.getElementById('editOrigen').value.trim(),
+        "Próximo Contacto": document.getElementById('editProximoContacto').value || ''
       };
       const response = await fetch(NOTION_FUNCTION_URL, {
         method: 'POST',
