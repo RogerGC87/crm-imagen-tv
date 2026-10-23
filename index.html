@@ -808,7 +808,7 @@
   document.querySelectorAll('a[data-form]').forEach(link => {
     link.addEventListener('click', (event) => {
       const formType = link.dataset.form;
-      const includeDirection = formType === 'alta';
+      const includeDirection = formType === 'alta' || formType === 'seguimiento';
       openFillout(event, link.href, includeDirection);
     });
   });
@@ -1342,10 +1342,12 @@
       const { data, error } = await supabaseClient.auth.getUser();
       if (error) throw error;
 
+      // En Seguimiento también enviamos la Dirección Comercial del usuario.
+      // Fillout puede usar este parámetro para limitar las cuentas disponibles.
       const targetUrl = buildFilloutUrl(
         'https://forms.fillout.com/t/n17f6KbKDVus',
         data?.user,
-        false,
+        true,
         clienteSeleccionado.cliente
       );
       newTab.location.replace(targetUrl);
