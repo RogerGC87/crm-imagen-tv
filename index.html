@@ -154,6 +154,23 @@
   .dashboard-screen h2{margin:0 0 8px}
   @media(max-width:720px){.home-actions{grid-template-columns:1fr}.home-card{min-height:130px;padding:22px}.home-card .icon{width:64px;height:64px;flex-basis:64px;font-size:30px}.home-card h2{font-size:21px}}
 
+  .alta-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.46);z-index:1200;align-items:center;justify-content:center;padding:24px}
+  .alta-modal.active{display:flex}
+  .alta-modal-card{width:min(520px,100%);background:#fff;border:1px solid var(--border);border-radius:20px;box-shadow:0 24px 70px rgba(16,43,67,.28);overflow:hidden}
+  .alta-modal-head{padding:24px 26px 8px}
+  .alta-modal-eyebrow{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--red);font-weight:800;margin-bottom:7px}
+  .alta-modal-head h2{margin:0;font-size:23px;color:var(--navy)}
+  .alta-modal-body{padding:8px 26px 22px}
+  .alta-modal-body p{margin:0 0 14px;color:#627283;font-size:14px;line-height:1.45}
+  .alta-modal-input{width:100%;padding:13px 14px;border:2px solid #cfd8df;border-radius:11px;background:#fff;color:var(--navy);font:inherit;font-size:16px;outline:none}
+  .alta-modal-input:focus{border-color:#496da8;box-shadow:0 0 0 4px rgba(73,109,168,.12)}
+  .alta-modal-error{display:none;margin-top:9px;color:#b42318;font-size:13px}
+  .alta-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:16px 26px;background:#fbfcfd;border-top:1px solid var(--border)}
+  .alta-modal-btn{border-radius:999px;padding:11px 20px;font-weight:700;font-size:14px;cursor:pointer}
+  .alta-modal-cancel{border:1px solid #d6dde3;background:#fff;color:var(--navy)}
+  .alta-modal-confirm{border:0;background:#486aa4;color:#fff}
+  .alta-modal-confirm:disabled{opacity:.6;cursor:wait}
+  @media(max-width:520px){.alta-modal-card{border-radius:18px}.alta-modal-head,.alta-modal-body{padding-left:20px;padding-right:20px}.alta-modal-actions{padding-left:20px;padding-right:20px}}
   .cliente-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1000;align-items:center;justify-content:center;padding:24px}
   .cliente-modal.active{display:flex}
   .cliente-modal-card{width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px rgba(16,43,67,.24)}
@@ -233,7 +250,7 @@
     <section id="homeView" class="view active" aria-hidden="false">
       <div class="section-title">Menú principal</div>
       <div class="home-actions">
-        <a class="home-card red" href="https://forms.fillout.com/t/hSpAXq69fLus" data-form="alta" target="_blank" rel="noopener">
+        <a class="home-card red" href="https://forms.fillout.com/t/hSpAXq69fLus" data-form="alta">
           <div class="icon">👤</div>
           <div><div class="eyebrow">Formulario</div><h2>Alta de cliente</h2><p class="desc">Registra un nuevo cliente en el CRM de ventas.</p></div>
           <div class="arrow">›</div>
@@ -384,33 +401,57 @@
     return url.toString();
   }
 
+  function pedirNombreCliente() {
+    return new Promise((resolve) => {
+      const modal = document.getElementById('altaModal');
+      const input = document.getElementById('altaClienteInput');
+      const errorBox = document.getElementById('altaModalError');
+      const confirmBtn = document.getElementById('altaModalConfirm');
+      const cancelBtn = document.getElementById('altaModalCancel');
+
+      const cleanup = (value) => {
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
+        input.value = '';
+        errorBox.style.display = 'none';
+        errorBox.textContent = '';
+        confirmBtn.disabled = false;
+        resolve(value);
+      };
+
+      const confirm = () => {
+        const value = input.value.trim();
+        if (!value) {
+          errorBox.textContent = 'Escribe el nombre del cliente para continuar.';
+          errorBox.style.display = 'block';
+          input.focus();
+          return;
+        }
+        cleanup(value);
+      };
+
+      const cancel = () => cleanup(null);
+      confirmBtn.onclick = confirm;
+      cancelBtn.onclick = cancel;
+      input.onkeydown = (event) => {
+        if (event.key === 'Enter') { event.preventDefault(); confirm(); }
+        if (event.key === 'Escape') { event.preventDefault(); cancel(); }
+      };
+
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      setTimeout(() => input.focus(), 50);
+    });
+  }
+
   async function openFillout(event, baseUrl, includeDirection) {
-    // Prevent the original link from opening without the user's parameters.
     event.preventDefault();
 
     let clienteAlta = '';
-
-    // Antes de abrir el Alta, pedimos el nombre del cliente y lo validamos
-    // contra Notion. Si ya existe, no abrimos Fillout.
     if (includeDirection) {
-      clienteAlta = window.prompt('Escribe el nombre del cliente que quieres dar de alta:');
+      clienteAlta = await pedirNombreCliente();
       if (clienteAlta === null) return;
-      clienteAlta = clienteAlta.trim();
-
-      if (!clienteAlta) {
-        alert('Debes escribir el nombre del cliente.');
-        return;
-      }
     }
-
-    // Open the tab synchronously during the click so the browser doesn't
-    // block it while Supabase retrieves the authenticated user.
-    const newTab = window.open('about:blank', '_blank');
-    if (!newTab) {
-      alert('Tu navegador bloqueó la nueva pestaña. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
-      return;
-    }
-    newTab.opener = null;
 
     try {
       const { data, error } = await supabaseClient.auth.getUser();
@@ -433,17 +474,35 @@
         if (!checkResponse.ok) throw new Error(checkData.error || 'No fue posible validar el cliente.');
 
         if (checkData.existe) {
-          newTab.close();
-          alert(`El cliente "${checkData.cliente || clienteAlta}" ya está registrado en el CRM.\n\nNo se puede crear un duplicado.`);
+          const modal = document.getElementById('altaModal');
+          const input = document.getElementById('altaClienteInput');
+          const errorBox = document.getElementById('altaModalError');
+          const confirmBtn = document.getElementById('altaModalConfirm');
+          errorBox.textContent = `El cliente "${checkData.cliente || clienteAlta}" ya está registrado en el CRM. No se puede crear un duplicado.`;
+          errorBox.style.display = 'block';
+          confirmBtn.disabled = false;
+          modal.classList.add('active');
+          modal.setAttribute('aria-hidden', 'false');
+          input.focus();
           return;
         }
       }
 
       const targetUrl = buildFilloutUrl(baseUrl, data?.user, includeDirection, clienteAlta);
-      newTab.location.replace(targetUrl);
+      // Mismo pestaña: evita abrir una ventana nueva y luego regresar al portal.
+      window.location.href = targetUrl;
     } catch (error) {
-      newTab.close();
-      alert('No se pudo validar el cliente. Vuelve a intentarlo.');
+      const modal = document.getElementById('altaModal');
+      const errorBox = document.getElementById('altaModalError');
+      if (includeDirection) {
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+        errorBox.textContent = 'No se pudo validar el cliente. Vuelve a intentarlo.';
+        errorBox.style.display = 'block';
+        document.getElementById('altaClienteInput').focus();
+      } else {
+        alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
+      }
       console.error('Error al validar/abrir el formulario:', error);
     }
   }
