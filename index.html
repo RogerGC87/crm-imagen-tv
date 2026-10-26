@@ -421,13 +421,13 @@
 
       <div id="forgotPanel" class="auth-panel">
         <h2>Recupera tu acceso</h2>
-        <p>Ingresa el correo con el que tienes registrada tu cuenta en el CRM. Te enviaremos un enlace para restablecer tu contraseña.</p>
+        <p>Ingresa el correo con el que tienes registrada tu cuenta en el CRM. Te enviaremos un código de recuperación.</p>
         <form id="forgotForm" class="login-form">
           <div class="field">
             <label for="forgotEmail">Correo electrónico</label>
             <input id="forgotEmail" type="email" autocomplete="email" required placeholder="correo@empresa.com">
           </div>
-          <button id="forgotBtn" class="login-btn" type="submit">Enviar enlace</button>
+          <button id="forgotBtn" class="login-btn" type="submit">Enviar código</button>
           <div id="forgotError" class="login-error"></div>
           <div id="forgotSuccess" class="login-success"></div>
           <button id="backToLoginBtn" class="secondary-btn" type="button">Volver a iniciar sesión</button>
@@ -436,8 +436,12 @@
 
       <div id="resetPanel" class="auth-panel">
         <h2>Crea una nueva contraseña</h2>
-        <p>Define una nueva contraseña para recuperar el acceso al CRM Ventas - Imagen TV.</p>
+        <p>Ingresa el código que recibiste por correo y define una nueva contraseña para recuperar el acceso al CRM.</p>
         <form id="resetForm" class="login-form">
+          <div id="recoveryCodeField" class="field">
+            <label for="recoveryCode">Código de recuperación</label>
+            <input id="recoveryCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="12" required placeholder="Código recibido por correo">
+          </div>
           <div class="field">
             <label for="newPassword">Nueva contraseña</label>
             <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres">
@@ -943,6 +947,8 @@
   let inactivityTimer = null;
   let activityWriteTimer = null;
   let currentUser = null;
+  let recoveryEmail = sessionStorage.getItem('crm_recovery_email') || '';
+  let otpRecoveryInProgress = false;
 
   const homeView = document.getElementById('homeView');
   const consultaView = document.getElementById('consultaView');
@@ -1709,7 +1715,24 @@
     resetError.style.display = 'none';
     resetSuccess.style.display = 'none';
     resetForm.reset();
-    setTimeout(() => document.getElementById('newPassword').focus(), 50);
+
+    // Los enlaces de recuperación antiguos siguen funcionando; el flujo nuevo usa código OTP.
+    const recoveryCodeField = document.getElementById('recoveryCodeField');
+    const recoveryCodeInput = document.getElementById('recoveryCode');
+    if (RECOVERY_FLOW) {
+      recoveryCodeField.style.display = 'none';
+      recoveryCodeInput.required = false;
+    } else {
+      recoveryCodeField.style.display = 'block';
+      recoveryCodeInput.required = true;
+    }
+
+    setTimeout(() => {
+      const target = RECOVERY_FLOW
+        ? document.getElementById('newPassword')
+        : document.getElementById('recoveryCode');
+      target.focus();
+    }, 50);
   }
 
   const RECOVERY_FLOW = (() => {
@@ -1773,6 +1796,8 @@
 
   backToLoginBtn.addEventListener('click', () => {
     forgotForm.reset();
+    recoveryEmail = '';
+    sessionStorage.removeItem('crm_recovery_email');
     showLogin();
   });
 
@@ -1783,7 +1808,7 @@
     forgotBtn.disabled = true;
     forgotBtn.textContent = 'Enviando…';
 
-    const email = document.getElementById('forgotEmail').value.trim();
+    const email = document.getElementById('forgotEmail').value.trim().toLowerCase();
     try {
       const redirectTo = 'https://rogergc87.github.io/crm-imagen-tv/';
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
@@ -1791,15 +1816,22 @@
       });
       if (error) throw error;
 
-      forgotSuccess.textContent = 'Si el correo está registrado, recibirás un enlace para restablecer tu contraseña. Revisa tu bandeja de entrada.';
+      recoveryEmail = email;
+      sessionStorage.setItem('crm_recovery_email', recoveryEmail);
+
+      forgotSuccess.textContent = 'Si el correo está registrado, recibirás un código de recuperación. Revisa tu bandeja de entrada.';
       forgotSuccess.style.display = 'block';
-      forgotBtn.textContent = 'Enlace enviado';
+      forgotBtn.textContent = 'Código enviado';
+
+      setTimeout(() => {
+        showResetPassword();
+      }, 900);
     } catch (error) {
       console.error('Error al solicitar recuperación:', error);
-      forgotError.textContent = `No fue posible enviar el enlace: ${error?.message || 'Error desconocido'}`;
+      forgotError.textContent = `No fue posible enviar el código: ${error?.message || 'Error desconocido'}`;
       forgotError.style.display = 'block';
       forgotBtn.disabled = false;
-      forgotBtn.textContent = 'Enviar enlace';
+      forgotBtn.textContent = 'Enviar código';
     }
   });
 
@@ -1808,8 +1840,21 @@
     resetError.style.display = 'none';
     resetSuccess.style.display = 'none';
 
+    const recoveryCode = document.getElementById('recoveryCode').value.trim();
     const newPassword = document.getElementById('newPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!RECOVERY_FLOW && !recoveryCode) {
+      resetError.textContent = 'Ingresa el código de recuperación que recibiste por correo.';
+      resetError.style.display = 'block';
+      return;
+    }
+
+    if (!RECOVERY_FLOW && !recoveryEmail) {
+      resetError.textContent = 'No encontramos el correo de recuperación. Solicita un nuevo código.';
+      resetError.style.display = 'block';
+      return;
+    }
 
     if (newPassword.length < 6) {
       resetError.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
@@ -1824,24 +1869,43 @@
     }
 
     resetBtn.disabled = true;
-    resetBtn.textContent = 'Guardando…';
+    resetBtn.textContent = 'Verificando…';
 
     try {
+      // Flujo nuevo: el código OTP crea la sesión de recuperación.
+      if (!RECOVERY_FLOW) {
+        otpRecoveryInProgress = true;
+        const { error: verifyError } = await supabaseClient.auth.verifyOtp({
+          email: recoveryEmail,
+          token: recoveryCode,
+          type: 'recovery'
+        });
+        if (verifyError) throw verifyError;
+      }
+
+      resetBtn.textContent = 'Guardando…';
       const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
       if (error) throw error;
 
       resetSuccess.textContent = 'Tu contraseña se actualizó correctamente. Ya puedes iniciar sesión con tu nueva contraseña.';
       resetSuccess.style.display = 'block';
+      sessionStorage.removeItem('crm_recovery_email');
+      recoveryEmail = '';
       resetForm.reset();
 
       setTimeout(async () => {
+        otpRecoveryInProgress = false;
         await supabaseClient.auth.signOut();
         window.history.replaceState({}, document.title, window.location.pathname);
         showLogin();
       }, 1600);
     } catch (error) {
       console.error('Error al actualizar contraseña:', error);
-      resetError.textContent = 'No fue posible actualizar la contraseña. El enlace puede haber expirado; solicita uno nuevo.';
+      otpRecoveryInProgress = false;
+      const message = !RECOVERY_FLOW
+        ? 'No fue posible verificar el código. Revisa que sea el último código recibido y vuelve a intentarlo.'
+        : 'No fue posible actualizar la contraseña. El enlace puede haber expirado; solicita uno nuevo.';
+      resetError.textContent = message;
       resetError.style.display = 'block';
       resetBtn.disabled = false;
       resetBtn.textContent = 'Guardar nueva contraseña';
@@ -1876,9 +1940,13 @@
   });
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
-    // The recovery link can first emit a normal session event and only
-    // afterward emit PASSWORD_RECOVERY. Always prioritize the recovery URL
-    // so the user sees the change-password screen instead of the CRM home.
+    // Durante verifyOtp Supabase puede emitir SIGNED_IN antes de que termine
+    // el cambio de contraseña. No mostrar el portal en medio del proceso.
+    if (otpRecoveryInProgress) {
+      return;
+    }
+
+    // Mantener compatibilidad con enlaces de recuperación anteriores.
     if (RECOVERY_FLOW || event === 'PASSWORD_RECOVERY') {
       showResetPassword();
       return;
