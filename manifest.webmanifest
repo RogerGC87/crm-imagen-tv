@@ -1,0 +1,10 @@
+{
+  "name": "CRM VENTAS",
+  "short_name": "CRM VENTAS",
+  "description": "CRM de ventas de Imagen TV",
+  "start_url": "/crm-imagen-tv/",
+  "scope": "/crm-imagen-tv/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#FF5000"
+}
