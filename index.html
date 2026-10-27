@@ -219,6 +219,9 @@
   .contactos-table tbody tr.contacto-row td{pointer-events:auto}
   .contactos-table tbody tr.contacto-row:hover{background:#f5f9fc}
   .contactos-table tbody tr.contacto-row:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:-2px}
+  .cliente-contact-link{display:inline-flex;align-items:center;gap:6px;padding:0;border:0;background:transparent;color:#1687c5;font:inherit;font-weight:800;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px;cursor:pointer}
+  .cliente-contact-link:hover{color:#0d5f8c}
+  .cliente-contact-link:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:3px;border-radius:4px}
   .contacto-name{font-weight:800;color:var(--navy)}
   .contacto-mail{color:#355f7d}
   .contacto-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1400;align-items:center;justify-content:center;padding:24px}
@@ -1457,6 +1460,7 @@
   }
 
   let contactosData = [];
+  let contactosLoaded = false;
   let contactoSeleccionado = null;
 
   const contactoSearch = document.getElementById('contactoSearch');
@@ -1633,6 +1637,7 @@
       }
 
       contactosData = Array.isArray(data.contactos) ? data.contactos : [];
+      contactosLoaded = true;
 
       if (isMaster) {
         contactoDireccion.style.display = '';
@@ -1649,6 +1654,7 @@
       renderContactos();
     } catch (error) {
       contactosData = [];
+      contactosLoaded = false;
       contactoBody.innerHTML =
         '<tr><td colspan="5" class="consulta-empty">No fue posible cargar los contactos.</td></tr>';
       contactoStatus.textContent = '';
@@ -1812,18 +1818,78 @@
     return '';
   }
 
-  function openClienteFicha(cliente) {
+  async function openClienteFicha(cliente) {
     clienteSeleccionado = cliente;
+
+    // Carga los contactos una sola vez para que los nombres de Contacto Cliente
+    // y Contacto Agencia puedan abrir su ficha directamente desde aquí.
+    if (!contactosLoaded) {
+      try {
+        await loadContactos();
+      } catch (error) {
+        console.warn('No fue posible cargar contactos para hacerlos clickeables:', error);
+      }
+    }
+
+    const clienteNombre = String(getClienteField(cliente, 'cliente') || '').trim();
+    const agenciaNombre = String(getClienteField(cliente, 'agencia') || '').trim();
+
+    const normalize = value => String(value || '').trim().toLowerCase();
+
+    function findContacto(nombre, tipo) {
+      const target = normalize(nombre);
+      if (!target) return null;
+
+      const candidatos = contactosData.filter(c =>
+        normalize(c.contacto) === target &&
+        normalize(getContactoClienteProspecto(c)) === normalize(clienteNombre)
+      );
+
+      if (!candidatos.length) return null;
+
+      // Para Contacto Agencia priorizamos la agencia del cliente.
+      if (tipo === 'agencia' && agenciaNombre) {
+        const matchAgencia = candidatos.find(c => normalize(c.agencia) === normalize(agenciaNombre));
+        if (matchAgencia) return matchAgencia;
+      }
+
+      // Para Contacto Cliente priorizamos Directo cuando existe.
+      if (tipo === 'cliente') {
+        const matchDirecto = candidatos.find(c => normalize(c.agencia) === 'directo');
+        if (matchDirecto) return matchDirecto;
+      }
+
+      return candidatos[0];
+    }
+
+    function renderContactoValue(nombre, tipo) {
+      const value = String(nombre || '').trim();
+      if (!value) return '<span class="muted">—</span>';
+
+      const contacto = findContacto(value, tipo);
+      if (!contacto) return escapeHtml(value);
+
+      const label = tipo === 'cliente' ? 'Abrir ficha del contacto cliente' : 'Abrir ficha del contacto agencia';
+      const safeIndex = contactosData.indexOf(contacto);
+
+      if (safeIndex < 0) return escapeHtml(value);
+
+      return `<button type="button" class="cliente-contact-link" data-contact-index="${safeIndex}" aria-label="${escapeHtml(label)}">${escapeHtml(value)} <span aria-hidden="true">↗</span></button>`;
+    }
+
+    const contactoCliente = getClienteField(cliente, 'contactoCliente', 'nombreContacto', 'nombre_contacto', 'contacto');
+    const contactoAgencia = getClienteField(cliente, 'contactoAgencia');
+
     const fields = [
       ['Dirección Comercial', getClienteField(cliente, 'direccion', 'direccionComercial', 'direccion_comercial')],
       ['Gerente', getClienteField(cliente, 'gerente', 'gerenteFinal')],
       ['Forecast', formatForecast(cliente.forecast)],
-      ['Contacto Cliente', getClienteField(cliente, 'contactoCliente', 'nombreContacto', 'nombre_contacto', 'contacto')],
+      ['Contacto Cliente', renderContactoValue(contactoCliente, 'cliente'), false, true],
       ['Puesto Cliente', getClienteField(cliente, 'puestoCliente', 'puesto')],
       ['Mail Cliente', getClienteField(cliente, 'mailCliente', 'mail')],
       ['Teléfono Cliente', getClienteField(cliente, 'telefonoCliente', 'telefono', 'telefonoContacto', 'telefono_contacto')],
       ['Agencia', getClienteField(cliente, 'agencia')],
-      ['Contacto Agencia', getClienteField(cliente, 'contactoAgencia')],
+      ['Contacto Agencia', renderContactoValue(contactoAgencia, 'agencia'), false, true],
       ['Puesto Agencia', getClienteField(cliente, 'puestoAgencia')],
       ['Mail Agencia', getClienteField(cliente, 'mailAgencia')],
       ['Teléfono Agencia', getClienteField(cliente, 'telefonoAgencia')],
@@ -1835,11 +1901,24 @@
     ];
 
     document.getElementById('clienteModalTitle').textContent = cliente.cliente || 'Cliente';
-    document.getElementById('clienteDetailGrid').innerHTML = fields.map(([label, value, full]) => `
+    document.getElementById('clienteDetailGrid').innerHTML = fields.map(([label, value, full, htmlValue]) => `
       <div class="cliente-detail-item${full ? ' full' : ''}">
         <span class="cliente-detail-label">${escapeHtml(label)}</span>
-        <div class="cliente-detail-value${value === undefined || value === null || value === '' ? ' muted' : ''}">${escapeHtml(formatDetailValue(value))}</div>
+        <div class="cliente-detail-value${!htmlValue && (value === undefined || value === null || value === '') ? ' muted' : ''}">${htmlValue ? value : escapeHtml(formatDetailValue(value))}</div>
       </div>`).join('');
+
+    // Abrir la ficha del contacto sin cerrar la ficha del cliente.
+    document.getElementById('clienteDetailGrid').querySelectorAll('.cliente-contact-link').forEach(button => {
+      button.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const index = Number(button.dataset.contactIndex);
+        if (Number.isInteger(index) && contactosData[index]) {
+          openContactoFicha(contactosData[index]);
+        }
+      });
+    });
 
     document.getElementById('clienteEditForm').style.display = 'none';
     document.getElementById('clienteDetailGrid').style.display = 'grid';
