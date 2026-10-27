@@ -226,6 +226,18 @@
   .contacto-modal-card{width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px rgba(16,43,67,.28)}
   .contacto-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px;border-bottom:1px solid var(--border)}
   .contacto-modal-head h2{margin:3px 0 0;font-size:28px}
+  .contacto-edit-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
+  .contacto-edit-btn:hover{border-color:var(--blue);color:var(--blue)}
+  .contacto-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;padding:24px 28px}
+  .contacto-form-field{display:flex;flex-direction:column;gap:6px}
+  .contacto-form-field label{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#718090;font-weight:700}
+  .contacto-form-field input,.contacto-form-field select{width:100%;box-sizing:border-box;border:1px solid #d6dde3;border-radius:9px;padding:11px 12px;font:inherit;color:var(--navy);background:#fff}
+  .contacto-form-field input:focus,.contacto-form-field select:focus{outline:2px solid rgba(33,140,199,.18);border-color:var(--blue)}
+  .contacto-form-field input.locked,.contacto-form-field select.locked{background:#f2f5f7;color:#526273;border-color:#d9e0e6;cursor:not-allowed}
+  .contacto-edit-status{font-size:13px;color:#627283;padding:0 28px 18px;display:none}
+  .contacto-edit-status.error{color:#b42318}
+  .contacto-edit-status.success{color:#16794c}
+  @media(max-width:720px){.contacto-form-grid{grid-template-columns:1fr;padding:20px}.contacto-modal-head{flex-wrap:wrap}}
   @media(max-width:720px){
     .contacto-modal{padding:12px}
     .contacto-modal-card{max-height:94vh;border-radius:18px}
@@ -663,9 +675,33 @@
             <div class="eyebrow">Ficha de contacto</div>
             <h2 id="contactoModalTitle">Contacto</h2>
           </div>
-          <button id="contactoModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
+          <div style="display:flex;gap:10px;align-items:center">
+            <button id="contactoEditBtn" class="contacto-edit-btn" type="button">✏️ Editar contacto</button>
+            <button id="contactoModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
+          </div>
         </div>
         <div id="contactoDetailGrid" class="cliente-detail-grid"></div>
+        <form id="contactoEditForm" style="display:none">
+          <div class="contacto-form-grid">
+            <div class="contacto-form-field"><label for="editContactoNombre">Contacto 🔒</label><input id="editContactoNombre" class="locked" type="text" readonly disabled></div>
+            <div class="contacto-form-field"><label for="editContactoCliente">Cliente</label><select id="editContactoCliente"><option value="">Sin cliente registrado</option></select></div>
+            <div class="contacto-form-field"><label for="editContactoProspecto">Cliente / Prospecto</label><input id="editContactoProspecto" type="text"></div>
+            <div class="contacto-form-field"><label for="editContactoAgencia">Agencia</label><input id="editContactoAgencia" type="text"></div>
+            <div class="contacto-form-field"><label for="editContactoPuesto">Puesto</label><input id="editContactoPuesto" type="text"></div>
+            <div class="contacto-form-field"><label for="editContactoMail">Mail</label><input id="editContactoMail" type="email"></div>
+            <div class="contacto-form-field"><label for="editContactoTelefono">Teléfono</label><input id="editContactoTelefono" type="tel"></div>
+            <div class="contacto-form-field"><label for="editContactoDireccion">Dirección Comercial</label><select id="editContactoDireccion"><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option></select></div>
+            <div class="contacto-form-field"><label for="editContactoDireccionCasa">Dirección Casa</label><input id="editContactoDireccionCasa" type="text"></div>
+            <div class="contacto-form-field"><label for="editContactoDireccionOficina">Dirección Oficina</label><input id="editContactoDireccionOficina" type="text"></div>
+            <div class="contacto-form-field"><label for="editContactoCumpleanos">Fecha de cumpleaños</label><input id="editContactoCumpleanos" type="text" inputmode="numeric" placeholder="DD/MM"></div>
+            <div class="contacto-form-field"><label for="editContactoRegistradoPor">Registrado por 🔒</label><input id="editContactoRegistradoPor" class="locked" type="text" readonly disabled></div>
+          </div>
+          <div id="contactoEditStatus" class="contacto-edit-status"></div>
+          <div class="cliente-modal-actions">
+            <button id="contactoEditCancel" class="cliente-cancel-btn" type="button">Cancelar</button>
+            <button id="contactoEditSave" class="cliente-save-btn" type="submit">Guardar cambios</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -1492,48 +1528,62 @@
     contactoStatus.textContent = `${rows.length} contacto${rows.length === 1 ? '' : 's'}`;
   }
 
+  function setContactoEditStatus(message, type = '') {
+    const el = document.getElementById('contactoEditStatus');
+    el.textContent = message || '';
+    el.className = `contacto-edit-status${type ? ` ${type}` : ''}`;
+    el.style.display = message ? 'block' : 'none';
+  }
+
+  async function cargarClientesParaContacto() {
+    const select = document.getElementById('editContactoCliente');
+    const previous = contactoSeleccionado?.clienteId || '';
+    select.innerHTML = '<option value="">Cargando clientes…</option>';
+    select.disabled = true;
+    const { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError || !sessionData.session) throw new Error('Sesión no disponible.');
+    const email = (sessionData.session.user?.email || '').toLowerCase();
+    const params = new URLSearchParams();
+    if (email === MASTER_EMAIL && contactoDireccion.value) params.set('direccion', contactoDireccion.value);
+    if (email !== MASTER_EMAIL && USER_DIRECTIONS[email]) params.set('direccion', USER_DIRECTIONS[email]);
+    const response = await fetch(`${NOTION_FUNCTION_URL}?${params.toString()}`, {method:'GET',headers:{Authorization:`Bearer ${sessionData.session.access_token}`,apikey:SUPABASE_PUBLISHABLE_KEY}});
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'No fue posible cargar los clientes.');
+    const clientes = Array.isArray(data.clientes) ? data.clientes : [];
+    select.innerHTML = '<option value="">Sin cliente registrado</option>' + clientes.filter(c=>c?.id&&c?.cliente).sort((a,b)=>String(a.cliente).localeCompare(String(b.cliente),'es')).map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.cliente)}</option>`).join('');
+    select.disabled = false;
+    select.value = previous;
+  }
+
+  function populateContactoEditForm(contacto) {
+    document.getElementById('editContactoNombre').value = contacto.contacto || '';
+    document.getElementById('editContactoProspecto').value = contacto.clienteProspecto || '';
+    document.getElementById('editContactoAgencia').value = contacto.agencia || '';
+    document.getElementById('editContactoPuesto').value = contacto.puesto || '';
+    document.getElementById('editContactoMail').value = contacto.mail || '';
+    document.getElementById('editContactoTelefono').value = contacto.telefono || '';
+    document.getElementById('editContactoDireccion').value = contacto.direccion || '';
+    document.getElementById('editContactoDireccionCasa').value = contacto.direccionCasa || '';
+    document.getElementById('editContactoDireccionOficina').value = contacto.direccionOficina || '';
+    document.getElementById('editContactoCumpleanos').value = formatCumpleanos(contacto.fechaCumpleanos);
+    document.getElementById('editContactoRegistradoPor').value = contacto.registradoPor || '';
+  }
+
   function openContactoFicha(contacto) {
     contactoSeleccionado = contacto;
-
     const clienteProspecto = getContactoClienteProspecto(contacto);
-
-    const fields = [
-      ['Cliente / Prospecto', clienteProspecto],
-      ['Agencia', contacto.agencia],
-      ['Puesto', contacto.puesto],
-      ['Mail', contacto.mail],
-      ['Teléfono', contacto.telefono],
-      ['Dirección Comercial', contacto.direccion],
-      ['Dirección Casa', contacto.direccionCasa],
-      ['Dirección Oficina', contacto.direccionOficina],
-      ['Fecha de cumpleaños', formatCumpleanos(contacto.fechaCumpleanos)],
-      ['Registrado por', contacto.registradoPor]
-    ];
-
-    document.getElementById('contactoModalTitle').textContent =
-      contacto.contacto || 'Contacto';
-
-    document.getElementById('contactoDetailGrid').innerHTML =
-      fields.map(([label, value]) => `
-        <div class="cliente-detail-item">
-          <span class="cliente-detail-label">${escapeHtml(label)}</span>
-          <div class="cliente-detail-value${!value ? ' muted' : ''}">
-            ${escapeHtml(formatDetailValue(value))}
-          </div>
-        </div>
-      `).join('');
-
-    const modal = document.getElementById('contactoModal');
-    modal.classList.add('active');
-    modal.setAttribute('aria-hidden', 'false');
-    document.getElementById('contactoModalClose').focus();
+    const fields = [['Cliente / Prospecto',clienteProspecto],['Agencia',contacto.agencia],['Puesto',contacto.puesto],['Mail',contacto.mail],['Teléfono',contacto.telefono],['Dirección Comercial',contacto.direccion],['Dirección Casa',contacto.direccionCasa],['Dirección Oficina',contacto.direccionOficina],['Fecha de cumpleaños',formatCumpleanos(contacto.fechaCumpleanos)],['Registrado por',contacto.registradoPor]];
+    document.getElementById('contactoModalTitle').textContent = contacto.contacto || 'Contacto';
+    document.getElementById('contactoDetailGrid').innerHTML = fields.map(([label,value])=>`<div class="cliente-detail-item"><span class="cliente-detail-label">${escapeHtml(label)}</span><div class="cliente-detail-value${!value?' muted':''}">${escapeHtml(formatDetailValue(value))}</div></div>`).join('');
+    document.getElementById('contactoEditForm').style.display='none';
+    document.getElementById('contactoDetailGrid').style.display='grid';
+    document.getElementById('contactoEditBtn').style.display='inline-block';
+    setContactoEditStatus('');
+    const modal=document.getElementById('contactoModal'); modal.classList.add('active'); modal.setAttribute('aria-hidden','false'); document.getElementById('contactoModalClose').focus();
   }
 
   function closeContactoFicha() {
-    const modal = document.getElementById('contactoModal');
-    modal.classList.remove('active');
-    modal.setAttribute('aria-hidden', 'true');
-    contactoSeleccionado = null;
+    const modal=document.getElementById('contactoModal'); modal.classList.remove('active'); modal.setAttribute('aria-hidden','true'); contactoSeleccionado=null;
   }
 
   async function loadContactos() {
@@ -1637,6 +1687,50 @@
         openContactoFicha(contactosData[index]);
       }
     }
+  });
+
+  document.getElementById('contactoEditBtn').addEventListener('click', async () => {
+    if (!contactoSeleccionado) return;
+    setContactoEditStatus('Cargando clientes…');
+    try {
+      populateContactoEditForm(contactoSeleccionado);
+      const editDir=document.getElementById('editContactoDireccion');
+      const userEmail=(currentUser?.email||'').toLowerCase();
+      editDir.disabled=userEmail!==MASTER_EMAIL; editDir.classList.toggle('locked',userEmail!==MASTER_EMAIL);
+      await cargarClientesParaContacto();
+      document.getElementById('contactoDetailGrid').style.display='none';
+      document.getElementById('contactoEditBtn').style.display='none';
+      document.getElementById('contactoEditForm').style.display='block';
+      setContactoEditStatus('');
+      document.getElementById('editContactoAgencia').focus();
+    } catch(error) { setContactoEditStatus(error.message||'No fue posible cargar los clientes.','error'); }
+  });
+
+  document.getElementById('contactoEditCancel').addEventListener('click',()=>{
+    document.getElementById('contactoEditForm').style.display='none';
+    document.getElementById('contactoDetailGrid').style.display='grid';
+    document.getElementById('contactoEditBtn').style.display='inline-block';
+    setContactoEditStatus('');
+  });
+
+  document.getElementById('contactoEditForm').addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(!contactoSeleccionado?.id){setContactoEditStatus('No se encontró el ID del contacto.','error');return;}
+    const saveBtn=document.getElementById('contactoEditSave'); saveBtn.disabled=true; setContactoEditStatus('Guardando cambios…');
+    try {
+      const {data:sessionData,error:sessionError}=await supabaseClient.auth.getSession();
+      if(sessionError||!sessionData.session) throw new Error('Sesión no disponible.');
+      const payload={action:'update',contactId:contactoSeleccionado.id,clienteId:document.getElementById('editContactoCliente').value,clienteProspecto:document.getElementById('editContactoProspecto').value.trim(),agencia:document.getElementById('editContactoAgencia').value.trim(),puesto:document.getElementById('editContactoPuesto').value.trim(),mail:document.getElementById('editContactoMail').value.trim(),telefono:document.getElementById('editContactoTelefono').value.trim(),direccion:document.getElementById('editContactoDireccion').value,direccionCasa:document.getElementById('editContactoDireccionCasa').value.trim(),direccionOficina:document.getElementById('editContactoDireccionOficina').value.trim(),fechaCumpleanos:document.getElementById('editContactoCumpleanos').value.trim()};
+      if(!payload.direccion) throw new Error('Selecciona una Dirección Comercial.');
+      if(payload.fechaCumpleanos&&!/^\d{2}\/\d{2}$/.test(payload.fechaCumpleanos)&&!/^\d{4}-\d{2}-\d{2}$/.test(payload.fechaCumpleanos)) throw new Error('La fecha de cumpleaños debe tener formato DD/MM.');
+      const response=await fetch(CONTACTOS_FUNCTION_URL,{method:'POST',headers:{Authorization:`Bearer ${sessionData.session.access_token}`,apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      const data=await response.json(); if(!response.ok) throw new Error(data.error||'No fue posible guardar los cambios.');
+      setContactoEditStatus('Contacto actualizado correctamente.','success');
+      await loadContactos();
+      const updated=contactosData.find(c=>c.id===contactoSeleccionado.id);
+      if(updated) openContactoFicha(updated); else closeContactoFicha();
+    } catch(error) { setContactoEditStatus(error.message||'No fue posible guardar los cambios.','error'); console.error('Error actualizando contacto:',error); }
+    finally { saveBtn.disabled=false; }
   });
 
   document.getElementById('contactoModalClose')
