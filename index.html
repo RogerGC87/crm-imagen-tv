@@ -2158,8 +2158,15 @@
       document.getElementById('clienteEditBtn').style.display = 'inline-block';
       document.getElementById('clienteFollowupBtn').style.display = 'inline-block';
       await loadConsulta();
+
+      // La edición del cliente puede haber creado o actualizado contactos
+      // en la base CONTACTOS. Invalidamos la caché para que la ficha del
+      // cliente consulte nuevamente los contactos y los vuelva clickeables.
+      contactosLoaded = false;
+      await loadContactos();
+
       const updated = consultaClientes.find(c => c.id === clienteSeleccionado.id);
-      if (updated) openClienteFicha(updated);
+      if (updated) await openClienteFicha(updated);
     } catch (error) {
       setEditStatus(error.message || 'No fue posible guardar los cambios.', 'error');
       console.error('Error actualizando cliente:', error);
