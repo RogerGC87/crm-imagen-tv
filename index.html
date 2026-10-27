@@ -1498,14 +1498,15 @@
     const clienteProspecto = getContactoClienteProspecto(contacto);
 
     const fields = [
-      ['Contacto', contacto.contacto],
       ['Cliente / Prospecto', clienteProspecto],
       ['Agencia', contacto.agencia],
       ['Puesto', contacto.puesto],
       ['Mail', contacto.mail],
       ['Teléfono', contacto.telefono],
       ['Dirección Comercial', contacto.direccion],
-      ['Fecha de cumpleaños', contacto.fechaCumpleanos],
+      ['Dirección Casa', contacto.direccionCasa],
+      ['Dirección Oficina', contacto.direccionOficina],
+      ['Fecha de cumpleaños', formatCumpleanos(contacto.fechaCumpleanos)],
       ['Registrado por', contacto.registradoPor]
     ];
 
@@ -1669,6 +1670,21 @@
       </tr>`).join('') : '<tr><td colspan="6" class="consulta-empty">No se encontraron clientes.</td></tr>';
 
     consultaStatus.textContent = `${rows.length} cliente${rows.length === 1 ? '' : 's'}`;
+  }
+
+  function formatCumpleanos(value) {
+    if (value === null || value === undefined || value === '') return '';
+    const text = String(value).trim();
+
+    // Notion normalmente devuelve la fecha como YYYY-MM-DD.
+    let match = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (match) return `${match[3]}/${match[2]}`;
+
+    // También soporta DD/MM/YYYY si llegara en ese formato.
+    match = text.match(/^(\d{2})\/(\d{2})(?:\/\d{4})?$/);
+    if (match) return `${match[1]}/${match[2]}`;
+
+    return text;
   }
 
   function formatDetailValue(value) {
