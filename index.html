@@ -214,6 +214,23 @@
   .cliente-detail-label{display:block;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#718090;font-weight:700;margin-bottom:5px}
   .cliente-detail-value{font-size:15px;color:var(--navy);font-weight:600;overflow-wrap:anywhere}
   .cliente-detail-value.muted{font-weight:400;color:#627283}
+
+  .contactos-table tbody tr.contacto-row{cursor:pointer;pointer-events:auto}
+  .contactos-table tbody tr.contacto-row td{pointer-events:auto}
+  .contactos-table tbody tr.contacto-row:hover{background:#f5f9fc}
+  .contactos-table tbody tr.contacto-row:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:-2px}
+  .contacto-name{font-weight:800;color:var(--navy)}
+  .contacto-mail{color:#355f7d}
+  .contacto-modal{display:none;position:fixed;inset:0;background:rgba(16,43,67,.42);z-index:1400;align-items:center;justify-content:center;padding:24px}
+  .contacto-modal.active{display:flex}
+  .contacto-modal-card{width:min(820px,100%);max-height:90vh;overflow:auto;background:#fff;border:1px solid var(--border);border-radius:22px;box-shadow:0 24px 70px rgba(16,43,67,.28)}
+  .contacto-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:24px 28px;border-bottom:1px solid var(--border)}
+  .contacto-modal-head h2{margin:3px 0 0;font-size:28px}
+  @media(max-width:720px){
+    .contacto-modal{padding:12px}
+    .contacto-modal-card{max-height:94vh;border-radius:18px}
+    .contacto-modal-head{padding:20px}
+  }
   .consulta-table tbody tr.cliente-row{cursor:pointer;pointer-events:auto}
   .consulta-table tbody tr.cliente-row td{pointer-events:auto}
   .consulta-table tbody tr.cliente-row:focus-within,.consulta-table tbody tr.cliente-row:focus{outline:2px solid rgba(33,140,199,.35);outline-offset:-2px}
@@ -491,6 +508,11 @@
           <div><div class="eyebrow">Consulta</div><h2>Consultar clientes</h2><p class="desc">Revisa la información de clientes registrados en el CRM.</p></div>
           <div class="arrow">›</div>
         </button>
+        <button class="home-card blue" type="button" data-view="contactos">
+          <div class="icon">👥</div>
+          <div><div class="eyebrow">Consulta</div><h2>Consultar contactos</h2><p class="desc">Busca y consulta la información completa de tus contactos.</p></div>
+          <div class="arrow">›</div>
+        </button>
         <button class="home-card gray" type="button" data-view="dashboard">
           <div class="icon">📊</div>
           <div><div class="eyebrow">Dashboard</div><h2>Ver resultados</h2><p class="desc">Consulta el desempeño comercial, pipeline y métricas clave.</p></div>
@@ -522,6 +544,56 @@
           <table class="consulta-table">
             <thead><tr><th>Cliente</th><th>Agencia</th><th>Mail Contacto</th><th>Puesto</th><th>Forecast</th><th>Estado</th></tr></thead>
             <tbody id="consultaBody"><tr><td colspan="6" class="consulta-empty">Cargando clientes…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="contactosView" class="view" aria-hidden="true">
+      <div class="view-nav">
+        <button class="back-btn" type="button" data-back>← Volver al menú</button>
+        <div class="view-title">Consulta</div>
+      </div>
+      <div class="consulta">
+        <div class="consulta-head">
+          <div class="icon">👥</div>
+          <div>
+            <div class="eyebrow">Consulta</div>
+            <h2>Consultar contactos</h2>
+            <p class="desc">Busca contactos de clientes y prospectos registrados en el CRM.</p>
+          </div>
+          <div id="contactoStatus" class="consulta-status"></div>
+        </div>
+
+        <div class="consulta-controls">
+          <input id="contactoSearch" type="search" placeholder="Buscar contacto, cliente o prospecto…">
+          <select id="contactoDireccion" style="display:none">
+            <option value="">Todas las direcciones</option>
+            <option value="LAH">LAH</option>
+            <option value="GS">GS</option>
+            <option value="BI">BI</option>
+          </select>
+          <select id="contactoAgencia">
+            <option value="">Todas las agencias</option>
+          </select>
+        </div>
+
+        <div id="contactoError" class="consulta-error"></div>
+
+        <div class="consulta-table-wrap">
+          <table class="consulta-table contactos-table">
+            <thead>
+              <tr>
+                <th>Contacto</th>
+                <th>Cliente o Prospecto</th>
+                <th>Agencia</th>
+                <th>Puesto</th>
+                <th>Mail</th>
+              </tr>
+            </thead>
+            <tbody id="contactoBody">
+              <tr><td colspan="5" class="consulta-empty">Cargando contactos…</td></tr>
+            </tbody>
           </table>
         </div>
       </div>
@@ -581,6 +653,19 @@
             <button id="clienteEditSave" class="cliente-save-btn" type="submit">Guardar cambios</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div id="contactoModal" class="contacto-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="contactoModalTitle">
+      <div class="contacto-modal-card">
+        <div class="contacto-modal-head">
+          <div>
+            <div class="eyebrow">Ficha de contacto</div>
+            <h2 id="contactoModalTitle">Contacto</h2>
+          </div>
+          <button id="contactoModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
+        </div>
+        <div id="contactoDetailGrid" class="cliente-detail-grid"></div>
       </div>
     </div>
 
@@ -962,7 +1047,7 @@
   const homeView = document.getElementById('homeView');
   const consultaView = document.getElementById('consultaView');
   const dashboardView = document.getElementById('dashboardView');
-  const views = { home: homeView, consulta: consultaView, dashboard: dashboardView };
+  const views = { home: homeView, consulta: consultaView, contactos: contactosView, dashboard: dashboardView };
 
   function showView(name) {
     const target = views[name] || homeView;
@@ -973,6 +1058,7 @@
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
     if (name === 'consulta') loadConsulta();
+    if (name === 'contactos') loadContactos();
     if (name === 'dashboard') loadDashboard();
   }
 
@@ -997,6 +1083,8 @@
 
 
   const NOTION_FUNCTION_URL = SUPABASE_URL + '/functions/v1/notion-clientes';
+  const CONTACTOS_FUNCTION_URL = SUPABASE_URL + '/functions/v1/notion-contactos';
+
   const consultaSearch = document.getElementById('consultaSearch');
   const consultaDireccion = document.getElementById('consultaDireccion');
   const consultaEstado = document.getElementById('consultaEstado');
@@ -1331,6 +1419,234 @@
       maximumFractionDigits:1
     }).format(millions) + ' M';
   }
+
+  let contactosData = [];
+  let contactoSeleccionado = null;
+
+  const contactoSearch = document.getElementById('contactoSearch');
+  const contactoDireccion = document.getElementById('contactoDireccion');
+  const contactoAgencia = document.getElementById('contactoAgencia');
+  const contactoBody = document.getElementById('contactoBody');
+  const contactoStatus = document.getElementById('contactoStatus');
+  const contactoError = document.getElementById('contactoError');
+
+  function getContactoClienteProspecto(contacto) {
+    return String(contacto?.cliente || '').trim() ||
+      String(contacto?.clienteProspecto || '').trim() ||
+      '';
+  }
+
+  function populateContactoAgencias() {
+    const current = contactoAgencia.value;
+    const agencias = [...new Set(
+      contactosData
+        .map(c => String(c.agencia || '').trim())
+        .filter(Boolean)
+    )].sort((a,b) => a.localeCompare(b, 'es'));
+
+    contactoAgencia.innerHTML =
+      '<option value="">Todas las agencias</option>' +
+      agencias.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+
+    if (agencias.includes(current)) contactoAgencia.value = current;
+  }
+
+  function renderContactos() {
+    const q = (contactoSearch.value || '').trim().toLowerCase();
+    const dir = contactoDireccion.value;
+    const agencia = contactoAgencia.value;
+
+    const rows = contactosData.filter(c => {
+      const clienteProspecto = getContactoClienteProspecto(c);
+      const haystack = [
+        c.contacto,
+        clienteProspecto,
+        c.cliente,
+        c.clienteProspecto,
+        c.agencia,
+        c.puesto,
+        c.mail,
+        c.telefono
+      ].join(' ').toLowerCase();
+
+      return (!q || haystack.includes(q)) &&
+        (!dir || c.direccion === dir) &&
+        (!agencia || c.agencia === agencia);
+    });
+
+    contactoBody.innerHTML = rows.length
+      ? rows.map(c => {
+          const index = contactosData.indexOf(c);
+          const clienteProspecto = getContactoClienteProspecto(c);
+          return `
+            <tr class="contacto-row" data-contact-index="${index}" tabindex="0" role="button" aria-label="Abrir ficha de ${escapeHtml(c.contacto || 'contacto')}">
+              <td><strong class="contacto-name">${escapeHtml(c.contacto || '—')}</strong></td>
+              <td>${escapeHtml(clienteProspecto || '—')}</td>
+              <td>${escapeHtml(c.agencia || '—')}</td>
+              <td>${escapeHtml(c.puesto || '—')}</td>
+              <td class="contacto-mail">${escapeHtml(c.mail || '—')}</td>
+            </tr>`;
+        }).join('')
+      : '<tr><td colspan="5" class="consulta-empty">No se encontraron contactos.</td></tr>';
+
+    contactoStatus.textContent = `${rows.length} contacto${rows.length === 1 ? '' : 's'}`;
+  }
+
+  function openContactoFicha(contacto) {
+    contactoSeleccionado = contacto;
+
+    const clienteProspecto = getContactoClienteProspecto(contacto);
+
+    const fields = [
+      ['Contacto', contacto.contacto],
+      ['Cliente / Prospecto', clienteProspecto],
+      ['Agencia', contacto.agencia],
+      ['Puesto', contacto.puesto],
+      ['Mail', contacto.mail],
+      ['Teléfono', contacto.telefono],
+      ['Dirección Comercial', contacto.direccion],
+      ['Fecha de cumpleaños', contacto.fechaCumpleanos],
+      ['Registrado por', contacto.registradoPor]
+    ];
+
+    document.getElementById('contactoModalTitle').textContent =
+      contacto.contacto || 'Contacto';
+
+    document.getElementById('contactoDetailGrid').innerHTML =
+      fields.map(([label, value]) => `
+        <div class="cliente-detail-item">
+          <span class="cliente-detail-label">${escapeHtml(label)}</span>
+          <div class="cliente-detail-value${!value ? ' muted' : ''}">
+            ${escapeHtml(formatDetailValue(value))}
+          </div>
+        </div>
+      `).join('');
+
+    const modal = document.getElementById('contactoModal');
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.getElementById('contactoModalClose').focus();
+  }
+
+  function closeContactoFicha() {
+    const modal = document.getElementById('contactoModal');
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    contactoSeleccionado = null;
+  }
+
+  async function loadContactos() {
+    contactoError.style.display = 'none';
+    contactoStatus.textContent = 'Consultando…';
+    contactoBody.innerHTML =
+      '<tr><td colspan="5" class="consulta-empty">Cargando contactos…</td></tr>';
+
+    try {
+      const { data: sessionData, error: sessionError } =
+        await supabaseClient.auth.getSession();
+
+      if (sessionError || !sessionData.session) {
+        throw new Error('Sesión no disponible.');
+      }
+
+      const email = (sessionData.session.user?.email || '').toLowerCase();
+      const isMaster = email === MASTER_EMAIL;
+
+      const params = new URLSearchParams();
+
+      if (isMaster && contactoDireccion.value) {
+        params.set('direccion', contactoDireccion.value);
+      }
+
+      if (!isMaster && USER_DIRECTIONS[email]) {
+        contactoDireccion.value = USER_DIRECTIONS[email];
+        contactoDireccion.disabled = true;
+        params.set('direccion', USER_DIRECTIONS[email]);
+      }
+
+      const response = await fetch(
+        `${CONTACTOS_FUNCTION_URL}?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            apikey: SUPABASE_PUBLISHABLE_KEY
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'No fue posible consultar los contactos.');
+      }
+
+      contactosData = Array.isArray(data.contactos) ? data.contactos : [];
+
+      if (isMaster) {
+        contactoDireccion.style.display = '';
+        contactoDireccion.disabled = false;
+      } else if (USER_DIRECTIONS[email]) {
+        contactoDireccion.style.display = '';
+        contactoDireccion.value = USER_DIRECTIONS[email];
+        contactoDireccion.disabled = true;
+      } else {
+        contactoDireccion.style.display = 'none';
+      }
+
+      populateContactoAgencias();
+      renderContactos();
+    } catch (error) {
+      contactosData = [];
+      contactoBody.innerHTML =
+        '<tr><td colspan="5" class="consulta-empty">No fue posible cargar los contactos.</td></tr>';
+      contactoStatus.textContent = '';
+      contactoError.textContent =
+        error.message || 'Error consultando contactos.';
+      contactoError.style.display = 'block';
+      console.error('Error en Consulta de Contactos:', error);
+    }
+  }
+
+  contactoSearch.addEventListener('input', renderContactos);
+  contactoAgencia.addEventListener('change', renderContactos);
+  contactoDireccion.addEventListener('change', loadContactos);
+
+  contactoBody.addEventListener('click', event => {
+    const row = event.target.closest('tr.contacto-row');
+    if (!row || !contactoBody.contains(row)) return;
+
+    const index = Number(row.dataset.contactIndex);
+
+    if (Number.isInteger(index) && contactosData[index]) {
+      openContactoFicha(contactosData[index]);
+    }
+  });
+
+  contactoBody.addEventListener('keydown', event => {
+    const row = event.target.closest('tr.contacto-row');
+    if (!row || !contactoBody.contains(row)) return;
+
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+
+      const index = Number(row.dataset.contactIndex);
+
+      if (Number.isInteger(index) && contactosData[index]) {
+        openContactoFicha(contactosData[index]);
+      }
+    }
+  });
+
+  document.getElementById('contactoModalClose')
+    .addEventListener('click', closeContactoFicha);
+
+  document.getElementById('contactoModal')
+    .addEventListener('click', event => {
+      if (event.target.id === 'contactoModal') {
+        closeContactoFicha();
+      }
+    });
 
   function renderConsulta() {
     const q = (consultaSearch.value || '').trim().toLowerCase();
@@ -1678,7 +1994,18 @@
     if (event.target.id === 'clienteModal') closeClienteFicha();
   });
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') closeClienteFicha();
+    if (event.key !== 'Escape') return;
+
+    const contactoModal = document.getElementById('contactoModal');
+    if (contactoModal.classList.contains('active')) {
+      closeContactoFicha();
+      return;
+    }
+
+    const clienteModal = document.getElementById('clienteModal');
+    if (clienteModal.classList.contains('active')) {
+      closeClienteFicha();
+    }
   });
 
   function hideAuthPanels() {
