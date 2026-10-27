@@ -1840,12 +1840,28 @@
       const target = normalize(nombre);
       if (!target) return null;
 
-      const candidatos = contactosData.filter(c =>
-        normalize(c.contacto) === target &&
+      // Primero buscamos por nombre. No exigimos que el nombre de cliente
+      // coincida exactamente, porque la relación de Notion puede venir como
+      // ID, nombre o texto de prospecto según el registro.
+      const candidatos = contactosData.filter(c => normalize(c.contacto) === target);
+      if (!candidatos.length) return null;
+
+      const clienteId = String(getClienteField(cliente, 'id', 'clienteId') || '').trim();
+
+      // Si el contacto trae el ID de la relación Cliente, es la coincidencia
+      // más precisa. Soportamos varios nombres posibles para ese campo.
+      if (clienteId) {
+        const matchId = candidatos.find(c =>
+          String(c.clienteId || c.cliente_id || c.clienteRelationId || '').trim() === clienteId
+        );
+        if (matchId) return matchId;
+      }
+
+      // Después intentamos por nombre de cliente/prospecto.
+      const matchCliente = candidatos.find(c =>
         normalize(getContactoClienteProspecto(c)) === normalize(clienteNombre)
       );
-
-      if (!candidatos.length) return null;
+      if (matchCliente) return matchCliente;
 
       // Para Contacto Agencia priorizamos la agencia del cliente.
       if (tipo === 'agencia' && agenciaNombre) {
@@ -1859,6 +1875,8 @@
         if (matchDirecto) return matchDirecto;
       }
 
+      // Último recurso: si el nombre es único dentro de la Dirección
+      // consultada, abrimos ese contacto.
       return candidatos[0];
     }
 
