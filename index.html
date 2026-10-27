@@ -481,6 +481,11 @@
           <div><div class="eyebrow">Formulario</div><h2>Registrar seguimiento</h2><p class="desc">Añade un nuevo seguimiento a un cliente existente.</p></div>
           <div class="arrow">›</div>
         </a>
+        <a class="home-card blue" href="https://forms.fillout.com/t/5Sua9BzGERus" data-form="contacto" target="_blank" rel="noopener">
+          <div class="icon">👥</div>
+          <div><div class="eyebrow">Formulario</div><h2>Alta de contacto</h2><p class="desc">Registra un nuevo contacto de un cliente o prospecto.</p></div>
+          <div class="arrow">›</div>
+        </a>
         <button class="home-card blue" type="button" data-view="consulta">
           <div class="icon">🔎</div>
           <div><div class="eyebrow">Consulta</div><h2>Consultar clientes</h2><p class="desc">Revisa la información de clientes registrados en el CRM.</p></div>
@@ -984,7 +989,7 @@
   document.querySelectorAll('a[data-form]').forEach(link => {
     link.addEventListener('click', (event) => {
       const formType = link.dataset.form;
-      const includeDirection = formType === 'alta' || formType === 'seguimiento';
+      const includeDirection = formType === 'alta' || formType === 'seguimiento' || formType === 'contacto';
       const validateAlta = formType === 'alta';
       openFillout(event, link.href, includeDirection, validateAlta);
     });
