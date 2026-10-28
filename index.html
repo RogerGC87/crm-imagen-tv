@@ -622,6 +622,24 @@ header{background:transparent!important;text-align:left!important;padding:30px 0
 .view-nav{border-bottom:1px solid var(--app-border)!important;padding:8px 0 14px!important;margin-bottom:18px!important}.back-btn{border:1px solid var(--app-border)!important;background:#fff!important;border-radius:8px!important;padding:9px 13px!important;color:#52687b!important}.view-title{font-weight:800!important;color:var(--app-navy)!important}
 .consulta,.dash-wrap{background:#fff;border:1px solid var(--app-border);border-radius:14px;box-shadow:0 8px 28px rgba(16,43,67,.05);padding:24px!important}.consulta-head,.dash-head{border-bottom:1px solid var(--app-border);padding-bottom:20px!important;margin-bottom:20px!important}.consulta-controls{gap:10px!important}.consulta-controls input,.consulta-controls select,.dash-filter select{border:1px solid #d5e0e8!important;background:#fff!important;border-radius:8px!important;min-height:42px!important}.consulta-table-wrap{border:1px solid var(--app-border);border-radius:10px;overflow:auto}.consulta-table th{background:#f7f9fb!important;color:#6d7f90!important;font-size:10px!important;letter-spacing:1px!important}.consulta-table td{border-bottom:1px solid #edf1f4!important}.dash-total{gap:14px!important}.dash-kpi{border:1px solid var(--app-border)!important;border-radius:12px!important;box-shadow:none!important;background:#fff!important}.dash-section{border:1px solid var(--app-border)!important;border-radius:12px!important;background:#fff!important}.dash-view-btn{border:1px solid var(--app-border)!important;border-radius:8px!important;background:#fff!important}.dash-view-btn.active{background:var(--app-blue)!important;border-color:var(--app-blue)!important;color:#fff!important}
 button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal-content{border-radius:16px!important;border:1px solid var(--app-border)!important;box-shadow:0 24px 70px rgba(16,43,67,.2)!important}.modal-header{border-bottom:1px solid var(--app-border)!important}
+/* Mobile: sidebar becomes an on-demand drawer */
+.mobile-nav-toggle{display:none}
+.mobile-nav-overlay{display:none}
+@media(max-width:720px){
+  .crm-sidebar{width:270px!important;max-width:82vw!important;padding:18px 14px!important;transform:translateX(-105%);transition:transform .22s ease;box-shadow:16px 0 36px rgba(16,43,67,.20);}
+  .crm-sidebar.mobile-open{transform:translateX(0);}
+  .crm-brand{justify-content:flex-start!important;padding:4px 10px 22px!important}
+  .crm-brand>div:last-child,.sidebar-label,.crm-nav-item span:not(.nav-icon),.sidebar-bottom>div:last-child{display:block!important}
+  .crm-nav-item{justify-content:flex-start!important;padding:13px 13px!important;min-height:46px}
+  .sidebar-bottom{justify-content:flex-start!important}
+  .portal-wrap{padding-left:14px!important;padding-right:14px!important}
+  .topbar{padding-left:58px!important;height:62px!important}
+  .mobile-nav-toggle{position:fixed;display:grid;place-items:center;left:12px;top:12px;width:42px;height:42px;border:1px solid var(--app-border);border-radius:10px;background:#fff;color:var(--app-navy);font-size:21px;line-height:1;z-index:1200;box-shadow:0 5px 16px rgba(16,43,67,.10);cursor:pointer}
+  .mobile-nav-toggle:active{transform:scale(.97)}
+  .mobile-nav-overlay{position:fixed;inset:0;background:rgba(10,28,43,.36);z-index:950}
+  .mobile-nav-overlay.active{display:block}
+  .mobile-nav-close{display:flex!important;align-items:center;justify-content:center;position:absolute;right:12px;top:12px;width:36px;height:36px;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer}
+}
 @media(max-width:900px){.crm-sidebar{width:76px;padding:18px 10px}.crm-brand{justify-content:center;padding:4px 0 22px}.crm-brand>div:last-child,.sidebar-label,.crm-nav-item span:not(.nav-icon),.sidebar-bottom>div:last-child{display:none}.crm-nav-item{justify-content:center;padding:12px 8px}.sidebar-bottom{justify-content:center}.portal-wrap{padding-left:98px!important;padding-right:18px!important}.home-actions{grid-template-columns:1fr!important}.topbar{height:62px!important}.logo{width:125px!important}}
 @media(max-width:600px){.crm-sidebar{width:62px}.portal-wrap{padding-left:76px!important;padding-right:12px!important}.user-pill{max-width:180px;overflow:hidden;text-overflow:ellipsis}.home-card{padding:18px!important}.consulta,.dash-wrap{padding:16px!important}header h1{font-size:30px!important}}
 
@@ -717,7 +735,10 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
   </section>
 
   <main id="portal" class="page portal-wrap">
+    <button id="mobileNavToggle" class="mobile-nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <div id="mobileNavOverlay" class="mobile-nav-overlay" aria-hidden="true"></div>
     <aside class="crm-sidebar" aria-label="Navegación principal">
+      <button id="mobileNavClose" class="mobile-nav-close" type="button" aria-label="Cerrar menú" style="display:none">×</button>
       <div class="crm-brand">
         <div class="brand-mark"><span></span><i></i></div>
         <div><strong>IMAGEN TV</strong><small>CRM VENTAS</small></div>
@@ -1407,8 +1428,30 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 
   showView('home');
 
+  // Menú lateral móvil: se abre y cierra a demanda.
+  const mobileNavToggle = document.getElementById('mobileNavToggle');
+  const mobileNavOverlay = document.getElementById('mobileNavOverlay');
+  const mobileNavClose = document.getElementById('mobileNavClose');
+  const mobileSidebar = document.querySelector('.crm-sidebar');
+  function setMobileNav(open){
+    if(!mobileSidebar) return;
+    mobileSidebar.classList.toggle('mobile-open', open);
+    mobileNavOverlay?.classList.toggle('active', open);
+    mobileNavToggle?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    mobileNavToggle?.setAttribute('aria-label', open ? 'Cerrar menú' : 'Abrir menú');
+  }
+  mobileNavToggle?.addEventListener('click', () => setMobileNav(!mobileSidebar.classList.contains('mobile-open')));
+  mobileNavOverlay?.addEventListener('click', () => setMobileNav(false));
+  mobileNavClose?.addEventListener('click', () => setMobileNav(false));
+  document.addEventListener('keydown', event => {
+    if(event.key === 'Escape') setMobileNav(false);
+  });
+
   document.querySelectorAll('.crm-nav-item[data-nav]').forEach(button => {
-    button.addEventListener('click', () => showView(button.dataset.nav));
+    button.addEventListener('click', () => {
+      showView(button.dataset.nav);
+      setMobileNav(false);
+    });
   });
 
   document.querySelectorAll('[data-view]').forEach(button => {
