@@ -643,6 +643,74 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 @media(max-width:900px){.crm-sidebar{width:76px;padding:18px 10px}.crm-brand{justify-content:center;padding:4px 0 22px}.crm-brand>div:last-child,.sidebar-label,.crm-nav-item span:not(.nav-icon),.sidebar-bottom>div:last-child{display:none}.crm-nav-item{justify-content:center;padding:12px 8px}.sidebar-bottom{justify-content:center}.portal-wrap{padding-left:98px!important;padding-right:18px!important}.home-actions{grid-template-columns:1fr!important}.topbar{height:62px!important}.logo{width:125px!important}}
 @media(max-width:600px){.crm-sidebar{width:62px}.portal-wrap{padding-left:76px!important;padding-right:12px!important}.user-pill{max-width:180px;overflow:hidden;text-overflow:ellipsis}.home-card{padding:18px!important}.consulta,.dash-wrap{padding:16px!important}header h1{font-size:30px!important}}
 
+
+  /* MOBILE DRAWER FINAL OVERRIDE: on phones/tablets the sidebar is hidden until opened */
+  @media (max-width: 900px) {
+    .crm-sidebar {
+      width: 270px !important;
+      max-width: 82vw !important;
+      height: 100dvh !important;
+      top: 0 !important;
+      bottom: auto !important;
+      padding: 18px 14px !important;
+      transform: translateX(-110%) !important;
+      transition: transform .22s ease !important;
+      z-index: 2000 !important;
+      overflow-y: auto !important;
+    }
+    .crm-sidebar.mobile-open {
+      transform: translateX(0) !important;
+    }
+    .crm-brand {
+      justify-content: flex-start !important;
+      padding: 4px 10px 22px !important;
+    }
+    .crm-brand > div:last-child,
+    .sidebar-label,
+    .crm-nav-item span:not(.nav-icon),
+    .sidebar-bottom > div:last-child {
+      display: block !important;
+    }
+    .crm-nav-item {
+      justify-content: flex-start !important;
+      padding: 13px !important;
+      min-height: 46px !important;
+    }
+    .sidebar-bottom {
+      justify-content: flex-start !important;
+    }
+    .portal-wrap {
+      padding-left: 14px !important;
+      padding-right: 14px !important;
+    }
+    .topbar {
+      padding-left: 64px !important;
+      height: 62px !important;
+    }
+    .mobile-nav-toggle {
+      position: fixed !important;
+      display: grid !important;
+      place-items: center !important;
+      left: 12px !important;
+      top: 10px !important;
+      width: 42px !important;
+      height: 42px !important;
+      z-index: 2100 !important;
+    }
+    .mobile-nav-overlay {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 1900 !important;
+      background: rgba(10,28,43,.36) !important;
+    }
+    .mobile-nav-overlay.active { display: block !important; }
+    .mobile-nav-close { display: flex !important; }
+  }
+
+  @media (min-width: 901px) {
+    .mobile-nav-toggle, .mobile-nav-overlay, .mobile-nav-close { display: none !important; }
+  }
+
   /* FIX LOGIN: logo centered independently from sidebar/header logo styles */
   .login-card .login-logo-wrap{width:100%;display:flex!important;justify-content:center!important;align-items:center!important;text-align:center!important;margin:0 0 22px!important;padding:0!important;}
   .login-card .login-logo-centered{display:block!important;width:min(250px,70%)!important;height:auto!important;margin:0!important;position:static!important;left:auto!important;right:auto!important;transform:none!important;float:none!important;}
