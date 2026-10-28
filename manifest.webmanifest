@@ -2,21 +2,23 @@
   "name": "CRM VENTAS",
   "short_name": "CRM VENTAS",
   "description": "CRM de ventas de Imagen TV",
-  "start_url": "/crm-imagen-tv/?v=2",
+  "start_url": "/crm-imagen-tv/?v=3",
   "scope": "/crm-imagen-tv/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#FF5000",
+  "theme_color": "#FF1B36",
   "icons": [
     {
       "src": "/crm-imagen-tv/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "/crm-imagen-tv/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

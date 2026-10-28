@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/crm-imagen-tv/manifest.webmanifest?v=2">
+<meta name="theme-color" content="#FF5000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" sizes="180x180" href="/crm-imagen-tv/icon-180.png?v=2">
+<link rel="apple-touch-icon-precomposed" sizes="180x180" href="/crm-imagen-tv/icon-180.png?v=2">
 <title>CRM VENTAS - IMAGEN TV</title>
 <style>
   :root {
@@ -817,6 +823,80 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 }
 @media screen and (min-width: 901px) {
   .mobile-nav-toggle, .mobile-nav-overlay, .mobile-nav-close { display: none !important; }
+}
+</style>
+
+
+<style id="mobile-agency-chart-fix">
+/* CRM VENTAS — mobile agency chart: keep values inside the card */
+@media screen and (max-width: 720px) {
+  .dash-wrap,
+  .dashboard-screen,
+  #dashboardAgenciaMode,
+  #dashboardAgencyBars {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  #dashboardAgenciaMode .dash-section {
+    overflow: hidden !important;
+  }
+
+  #dashboardAgenciaMode .agency-legend {
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+    gap: 10px 14px !important;
+    margin-top: 4px !important;
+  }
+
+  #dashboardAgenciaMode .agency-bar-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    grid-template-rows: auto auto !important;
+    column-gap: 10px !important;
+    row-gap: 7px !important;
+    width: 100% !important;
+    margin: 17px 0 !important;
+    min-width: 0 !important;
+    align-items: start !important;
+  }
+
+  #dashboardAgenciaMode .agency-bar-row > div:first-child {
+    min-width: 0 !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+
+  #dashboardAgenciaMode .agency-bar-label {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    font-size: 13px !important;
+  }
+
+  #dashboardAgenciaMode .agency-bar-meta {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  #dashboardAgenciaMode .agency-bar-value {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    white-space: nowrap !important;
+    text-align: right !important;
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+    padding-top: 1px !important;
+  }
+
+  #dashboardAgenciaMode .agency-bar-track {
+    grid-column: 1 / -1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 24px !important;
+  }
 }
 </style>
 
