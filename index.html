@@ -100,6 +100,13 @@
   .field label{display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:7px}
   .field input{width:100%;padding:14px 15px;border:1px solid #cfd8df;border-radius:12px;font-size:16px;outline:none;background:#fff;transition:border .15s,box-shadow .15s}
   .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(33,140,199,.12)}
+  /* Visualizador de contraseña */
+  .password-wrap{position:relative;display:flex;align-items:center}
+  .password-wrap input{padding-right:48px!important}
+  .password-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;background:transparent;color:#718090;display:grid;place-items:center;border-radius:8px;cursor:pointer;padding:0;font-size:18px;line-height:1}
+  .password-toggle:hover{background:#f2f6f9;color:var(--itv-blue,#1687c5)}
+  .password-toggle:focus{outline:2px solid rgba(22,135,197,.18);outline-offset:1px}
+
   .login-btn{width:100%;border:0;border-radius:12px;padding:14px 18px;background:var(--red);color:#fff;font-size:16px;font-weight:800;cursor:pointer;margin-top:5px}
   .login-btn:hover{background:var(--red-dark)}
   .login-btn:disabled{opacity:.65;cursor:wait}
@@ -915,7 +922,10 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         </div>
         <div class="field">
           <label for="password">Contraseña</label>
-          <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+          <div class="password-wrap">
+            <input id="password" type="password" autocomplete="current-password" required placeholder="••••••••">
+            <button class="password-toggle" type="button" data-password-target="password" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+          </div>
         </div>
         <button id="loginBtn" class="login-btn" type="submit">Iniciar sesión</button>
         <div id="loginError" class="login-error"></div>
@@ -943,11 +953,17 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <form id="resetForm" class="login-form">
           <div class="field">
             <label for="newPassword">Nueva contraseña</label>
-            <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+            <div class="password-wrap">
+              <input id="newPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+              <button class="password-toggle" type="button" data-password-target="newPassword" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+            </div>
           </div>
           <div class="field">
             <label for="confirmPassword">Confirmar contraseña</label>
-            <input id="confirmPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Repite tu contraseña">
+            <div class="password-wrap">
+              <input id="confirmPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Repite tu contraseña">
+              <button class="password-toggle" type="button" data-password-target="confirmPassword" aria-label="Mostrar contraseña" aria-pressed="false">👁</button>
+            </div>
           </div>
           <button id="resetBtn" class="login-btn" type="submit">Guardar nueva contraseña</button>
           <div id="resetError" class="login-error"></div>
@@ -3031,6 +3047,31 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       clearTimeout(activityWriteTimer);
       activityWriteTimer = setTimeout(activityDetected, 250);
     }, { passive: true });
+  });
+
+
+  // Mostrar contraseña mientras se mantiene presionado el botón
+  document.querySelectorAll('.password-toggle').forEach((toggle) => {
+    const input = document.getElementById(toggle.dataset.passwordTarget);
+    if (!input) return;
+
+    const show = () => {
+      input.type = 'text';
+      toggle.setAttribute('aria-pressed', 'true');
+    };
+    const hide = () => {
+      input.type = 'password';
+      toggle.setAttribute('aria-pressed', 'false');
+    };
+
+    toggle.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      show();
+    });
+    toggle.addEventListener('pointerup', hide);
+    toggle.addEventListener('pointercancel', hide);
+    toggle.addEventListener('pointerleave', hide);
+    toggle.addEventListener('blur', hide);
   });
 
   forgotPasswordLink.addEventListener('click', (event) => {
