@@ -291,6 +291,16 @@
   .dir-caption{font-size:11px;color:#8794a1;margin-top:2px;position:relative}
   .dir-forecast{font-size:20px;font-weight:850;color:var(--group-color,var(--blue));margin-top:14px;position:relative}
   .dir-weighted{font-size:12px;color:#6e7e8d;margin-top:5px}
+  .dir-type-breakdown{position:relative;margin-top:15px;padding-top:11px;border-top:1px solid #e8edf1}
+  .dash-kpi .dir-type-breakdown{margin-top:13px;padding-top:10px}
+  .dash-kpi .dir-type-title{font-size:9px;letter-spacing:.8px;margin-bottom:5px}
+  .dash-kpi .dir-type-row{font-size:11px;padding:3px 0;gap:8px}
+  .dash-kpi .dir-type-row strong{font-size:11px}
+  .dir-type-title{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#718090;margin-bottom:7px}
+  .dir-type-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0;font-size:12px;color:#526579}
+  .dir-type-row span:first-child{min-width:0;overflow-wrap:anywhere}
+  .dir-type-row strong{white-space:nowrap;color:#173b5b;font-weight:800}
+  .dir-type-empty{font-size:12px;color:#8996a3;padding:3px 0}
   .bar-list{display:grid;gap:15px}
   .bar-row{display:grid;grid-template-columns:70px 1fr 125px;align-items:center;gap:12px}
   .bar-label{font-weight:900;color:var(--navy);font-size:13px}
@@ -1067,7 +1077,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <div id="consultaError" class="consulta-error"></div>
         <div class="consulta-table-wrap">
           <table class="consulta-table">
-            <thead><tr><th>Cliente</th><th>Agencia</th><th>Mail Contacto</th><th>Puesto</th><th>Forecast</th><th>Estado</th></tr></thead>
+            <thead><tr><th>Cliente</th><th>Agencia</th><th>Tipo Cliente</th><th>Mail Contacto</th><th>Puesto</th><th>Forecast</th><th>Estado</th></tr></thead>
             <tbody id="consultaBody"><tr><td colspan="6" class="consulta-empty">Cargando clientes…</td></tr></tbody>
           </table>
         </div>
@@ -1160,6 +1170,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
           <div class="cliente-form-grid">
             <div class="cliente-form-field"><label for="editCliente">Cliente 🔒</label><input id="editCliente" class="locked" name="cliente" type="text" readonly disabled></div>
             <div class="cliente-form-field"><label for="editDireccion">Dirección Comercial 🔒</label><select id="editDireccion" class="locked" name="direccion" tabindex="-1" disabled><option value="">Selecciona</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option></select></div>
+            <div class="cliente-form-field"><label for="editTipoCliente">Tipo Cliente</label><select id="editTipoCliente" name="tipoCliente"><option value="">Selecciona una opción</option><option value="Efectivo">Efectivo</option><option value="Intercambio">Intercambio</option><option value="Efectivo / Intercambio">Efectivo / Intercambio</option><option value="Convenio Agencia">Convenio Agencia</option></select></div>
             <div class="cliente-form-field"><label for="editGerente">Gerente 🔒</label><input id="editGerente" class="locked" name="gerente" type="text" readonly disabled></div>
             <div class="cliente-form-field"><label for="editContacto">Contacto Cliente</label><input id="editContacto" name="nombreContacto" type="text"></div>
             <div class="cliente-form-field"><label for="editPuesto">Puesto Cliente</label><input id="editPuesto" name="puesto" type="text"></div>
@@ -1298,7 +1309,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <div id="dashboardContent" style="display:none">
           <div class="dash-total">
             <div class="dash-kpi"><div class="dash-kpi-label">Clientes</div><div id="dashTotalClientes" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Clientes registrados</div></div>
-            <div class="dash-kpi"><div class="dash-kpi-label">Forecast</div><div id="dashTotalForecast" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Forecast vigente</div></div>
+            <div class="dash-kpi"><div class="dash-kpi-label">Forecast</div><div id="dashTotalForecast" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Forecast vigente</div><div id="dashForecastTypeBreakdown"></div></div>
             <div class="dash-kpi"><div class="dash-kpi-label">Forecast ponderado</div><div id="dashTotalPonderado" class="dash-kpi-value">—</div><div class="dash-kpi-sub">Considerando probabilidad</div></div>
           </div>
           <div class="dash-view-switch">
@@ -1764,6 +1775,31 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       return '--group-color:#718090;--group-bg:#f1f4f6;';
     }
   
+    const DASHBOARD_CLIENT_TYPES = [
+      'Efectivo',
+      'Intercambio',
+      'Efectivo / Intercambio',
+      'Convenio Agencia'
+    ];
+
+    function renderForecastByClientType(items){
+      const totals = Object.fromEntries(DASHBOARD_CLIENT_TYPES.map(type => [type, 0]));
+      let unclassified = 0;
+      items.forEach(client => {
+        const type = String(getClienteField(client, 'tipoCliente', 'tipo_cliente') || '').trim();
+        const value = Number(client?.forecast) || 0;
+        if (Object.prototype.hasOwnProperty.call(totals, type)) totals[type] += value;
+        else unclassified += value;
+      });
+      const rows = DASHBOARD_CLIENT_TYPES.map(type => ({ label: type, value: totals[type] }));
+      if (unclassified !== 0) rows.push({ label: 'Sin clasificar', value: unclassified });
+      return `
+        <div class="dir-type-breakdown">
+          <div class="dir-type-title">Forecast por tipo de cliente</div>
+          ${rows.map(row => `<div class="dir-type-row"><span>${escapeHtml(row.label)}</span><strong>${formatForecast(row.value)}</strong></div>`).join('')}
+        </div>`;
+    }
+  
     let dashboardViewMode = 'direccion';
   
     function renderDashboard(){
@@ -1775,6 +1811,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       const totalPonderado = sumNumbers(visible,'forecastPonderado');
       document.getElementById('dashTotalClientes').textContent = totalClientes.toLocaleString('es-MX');
       document.getElementById('dashTotalForecast').textContent = formatForecast(totalForecast);
+      document.getElementById('dashForecastTypeBreakdown').innerHTML = renderForecastByClientType(visible);
       document.getElementById('dashTotalPonderado').textContent = formatForecast(totalPonderado);
   
       const directionMode = document.getElementById('dashboardDireccionMode');
@@ -1892,6 +1929,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
           <div class="dir-caption">clientes</div>
           <div class="dir-forecast">${formatForecast(g.forecast)}</div>
           <div class="dir-weighted">Ponderado: ${formatForecast(g.ponderado)}</div>
+          ${renderForecastByClientType(g.items)}
         </div>`).join('') || '<div class="dash-empty">No hay información para esta dirección.</div>';
   
       const maxForecast = Math.max(...groups.map(g => g.forecast), 0);
@@ -2484,11 +2522,12 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       <tr class="cliente-row" data-client-index="${consultaClientes.indexOf(c)}" tabindex="0" role="button" aria-label="Abrir ficha de ${escapeHtml(c.cliente || 'cliente')}">
         <td><strong>${escapeHtml(c.cliente || '—')}</strong></td>
         <td>${escapeHtml(c.agencia || '—')}</td>
+        <td>${escapeHtml(getClienteField(c, 'tipoCliente', 'tipo_cliente') || '—')}</td>
         <td>${escapeHtml(getClienteField(c, 'mail', 'mailCliente') || '—')}</td>
         <td>${escapeHtml(getClienteField(c, 'puesto', 'puestoCliente') || '—')}</td>
         <td class="forecast">${formatForecast(c.forecast)}</td>
         <td><span class="estado-pill">${escapeHtml(c.estado || 'Sin estado')}</span></td>
-      </tr>`).join('') : '<tr><td colspan="6" class="consulta-empty">No se encontraron clientes.</td></tr>';
+      </tr>`).join('') : '<tr><td colspan="7" class="consulta-empty">No se encontraron clientes.</td></tr>';
 
     consultaStatus.textContent = `${rows.length} cliente${rows.length === 1 ? '' : 's'}`;
   }
@@ -2621,6 +2660,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 
     const fields = [
       ['Dirección Comercial', getClienteField(cliente, 'direccion', 'direccionComercial', 'direccion_comercial')],
+      ['Tipo Cliente', getClienteField(cliente, 'tipoCliente', 'tipo_cliente')],
       ['Gerente', getClienteField(cliente, 'gerente', 'gerenteFinal')],
       ['Forecast', formatForecast(cliente.forecast)],
       ['Contacto Cliente', renderContactoValue(contactoCliente, 'cliente'), false, true],
@@ -2673,6 +2713,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 
   function populateEditForm(cliente) {
     const values = {
+      'Tipo Cliente': getClienteField(cliente, 'tipoCliente', 'tipo_cliente'),
       'Contacto Cliente': getClienteField(cliente, 'nombreContacto', 'contactoCliente', 'nombre_contacto', 'contacto'),
       'Puesto Cliente': getClienteField(cliente, 'puestoCliente', 'puesto'),
       'Mail Cliente': getClienteField(cliente, 'mailCliente', 'mail'),
@@ -2688,6 +2729,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 
     document.getElementById('editCliente').value = getClienteField(cliente, 'cliente');
     document.getElementById('editDireccion').value = getClienteField(cliente, 'direccion', 'direccionComercial', 'direccion_comercial');
+    document.getElementById('editTipoCliente').value = values['Tipo Cliente'];
     document.getElementById('editGerente').value = getClienteField(cliente, 'gerente', 'gerenteFinal');
     document.getElementById('editContacto').value = values['Contacto Cliente'];
     document.getElementById('editPuesto').value = values['Puesto Cliente'];
@@ -2836,6 +2878,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       // Cliente, Dirección Comercial, Gerente y Forecast quedan bloqueados
       // tanto visualmente como en el payload enviado a Supabase.
       const currentValues = {
+        'Tipo Cliente': document.getElementById('editTipoCliente').value,
         'Contacto Cliente': document.getElementById('editContacto').value.trim(),
         'Puesto Cliente': document.getElementById('editPuesto').value.trim(),
         'Mail Cliente': document.getElementById('editMail').value.trim(),
