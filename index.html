@@ -1181,7 +1181,16 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             <div class="cliente-form-field"><label for="editPuestoAgencia">Puesto Agencia</label><input id="editPuestoAgencia" name="puestoAgencia" type="text"></div>
             <div class="cliente-form-field"><label for="editMailAgencia">Mail Agencia</label><input id="editMailAgencia" name="mailAgencia" type="email"></div>
             <div class="cliente-form-field"><label for="editTelefonoAgencia">Teléfono Agencia</label><input id="editTelefonoAgencia" name="telefonoAgencia" type="tel"></div>
-            <div class="cliente-form-field"><label for="editOrigen">Origen</label><input id="editOrigen" name="origen" type="text"></div>
+            <div class="cliente-form-field"><label for="editOrigen">Origen</label><select id="editOrigen" name="origen">
+              <option value="">Selecciona una opción</option>
+              <option value="Agencia">Agencia</option>
+              <option value="Referido">Referido</option>
+              <option value="Redes Sociales">Redes Sociales</option>
+              <option value="Competencia">Competencia</option>
+              <option value="Pagina Web">Pagina Web</option>
+              <option value="Evento">Evento</option>
+              <option value="Otro">Otro</option>
+            </select></div>
             <div class="cliente-form-field"><label for="editForecast">Forecast 🔒</label><input id="editForecast" class="locked" name="forecast" type="number" min="0" step="0.01" readonly disabled></div>
             <div class="cliente-form-field"><label for="editProximoContacto">Próximo Contacto</label><input id="editProximoContacto" name="proximoContacto" type="date"></div>
           </div>
@@ -2749,7 +2758,16 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     document.getElementById('editPuestoAgencia').value = values['Puesto Agencia'];
     document.getElementById('editMailAgencia').value = values['Mail Agencia'];
     document.getElementById('editTelefonoAgencia').value = values['Teléfono Agencia'];
-    document.getElementById('editOrigen').value = values['Origen'];
+    const origenSelect = document.getElementById('editOrigen');
+    const origenActual = values['Origen'] || '';
+    // Conserva valores históricos aunque ya no estén entre las opciones actuales.
+    if (origenActual && ![...origenSelect.options].some(option => option.value === origenActual)) {
+      const opcionHistorica = document.createElement('option');
+      opcionHistorica.value = origenActual;
+      opcionHistorica.textContent = origenActual;
+      origenSelect.appendChild(opcionHistorica);
+    }
+    origenSelect.value = origenActual;
     document.getElementById('editForecast').value = getClienteField(cliente, 'forecast');
     document.getElementById('editProximoContacto').value = values['Próximo Contacto'];
 
