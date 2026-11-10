@@ -202,13 +202,11 @@
   .cliente-modal-close:hover{border-color:var(--red);color:var(--red)}
   .cliente-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;padding:24px 28px 30px}
 
-  .cliente-edit-btn,.cliente-followup-btn,.cliente-google-calendar-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
+  .cliente-edit-btn,.cliente-followup-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
   .cliente-edit-btn:hover{border-color:var(--blue);color:var(--blue)}
   .cliente-followup-btn{background:var(--blue);border-color:var(--blue);color:#fff}
   .cliente-followup-btn:hover{filter:brightness(.95)}
-  .cliente-google-calendar-btn{background:#fff;border-color:#1a73e8;color:#1967d2}
-  .cliente-google-calendar-btn:hover{background:#f3f8ff}
-  @media(max-width:760px){.cliente-modal-head>div:last-child{flex-wrap:wrap;justify-content:flex-end}.cliente-google-calendar-btn{order:3}}
+
   .cliente-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 28px;border-top:1px solid var(--border);background:#fbfcfd}
   .cliente-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;padding:24px 28px}
   .cliente-form-field{display:flex;flex-direction:column;gap:6px}
@@ -628,7 +626,7 @@ body{background:#f5f8fb!important;color:var(--app-text)}
 .crm-brand{display:flex;align-items:center;gap:11px;padding:4px 10px 30px;border-bottom:1px solid rgba(255,255,255,.1)}
 .crm-brand strong{display:block;font-size:16px;letter-spacing:.8px}.crm-brand small{display:block;margin-top:6px;color:#b9cad8;font-size:10px;letter-spacing:2px;font-weight:700}
 .brand-mark{position:relative;width:28px;height:34px;flex:none}.brand-mark span{position:absolute;left:6px;top:0;width:18px;height:18px;border-radius:50%;background:#218cc7}.brand-mark i{position:absolute;left:6px;bottom:0;width:18px;height:13px;background:#ed1b2f;display:block}
-.sidebar-label{font-size:10px;letter-spacing:2px;color:#8ea6b9;font-weight:700;margin:28px 12px 10px}.crm-nav{display:flex;flex-direction:column;gap:5px}.crm-nav-item{width:100%;border:0;background:transparent;color:#dce7ef;text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:.18s ease}.crm-nav-item:hover{background:rgba(255,255,255,.08);color:#fff}.crm-nav-item.active{background:#24445f;color:#fff;box-shadow:inset 3px 0 0 var(--app-orange)}.nav-icon{width:20px;text-align:center;font-size:17px;color:#a9c3d6}.crm-nav-item.active .nav-icon{color:#fff}.sidebar-bottom{margin-top:auto;border-top:1px solid rgba(255,255,255,.1);padding:16px 8px 2px;display:flex;align-items:center;gap:10px}.sidebar-user-dot{width:34px;height:34px;border-radius:50%;background:#218cc7;display:grid;place-items:center;font-size:11px;font-weight:800}.sidebar-bottom strong{display:block;font-size:12px}.sidebar-bottom small{display:block;color:#9fb2c1;font-size:10px;margin-top:3px}
+.sidebar-label{font-size:10px;letter-spacing:2px;color:#8ea6b9;font-weight:700;margin:28px 12px 10px}.crm-nav{display:flex;flex-direction:column;gap:5px}.crm-nav-item{width:100%;border:0;background:transparent;color:#dce7ef;text-decoration:none;display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;transition:.18s ease}.crm-nav-item:hover{background:rgba(255,255,255,.08);color:#fff}.crm-nav-item.active{background:#24445f;color:#fff;box-shadow:inset 3px 0 0 var(--app-orange)}.nav-icon{width:20px;text-align:center;font-size:17px;color:#a9c3d6}.crm-nav-item.active .nav-icon{color:#fff}.sidebar-calendar-btn{width:100%;display:flex;align-items:center;gap:11px;margin-top:auto;margin-bottom:14px;padding:12px 11px;border:1px solid rgba(255,255,255,.18);border-radius:10px;background:rgba(255,255,255,.08);color:#fff;font:600 12px Arial,Helvetica,sans-serif;text-align:left;cursor:pointer;transition:background .16s,border-color .16s}.sidebar-calendar-btn:hover{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.38)}.sidebar-calendar-btn:disabled{opacity:.65;cursor:wait}.sidebar-calendar-icon{width:20px;flex:0 0 20px;text-align:center;font-size:17px}.sidebar-bottom{margin-top:0;border-top:1px solid rgba(255,255,255,.1);padding:16px 8px 2px;display:flex;align-items:center;gap:10px}.sidebar-user-dot{width:34px;height:34px;border-radius:50%;background:#218cc7;display:grid;place-items:center;font-size:11px;font-weight:800}.sidebar-bottom strong{display:block;font-size:12px}.sidebar-bottom small{display:block;color:#9fb2c1;font-size:10px;margin-top:3px}
 .topbar{height:72px!important;display:flex!important;align-items:center;justify-content:flex-end;gap:10px;padding:0!important;margin:0!important;border-bottom:1px solid var(--app-border);background:rgba(255,255,255,.86);position:sticky;top:0;z-index:900}.user-pill,.logout-btn{background:#fff!important;border:1px solid var(--app-border)!important;border-radius:999px!important;padding:10px 16px!important;box-shadow:none!important}.logout-btn{font-weight:700!important}
 header{background:transparent!important;text-align:left!important;padding:30px 0 20px!important}.logo{width:155px!important;margin:0 0 10px!important} .login-card .logo{width:min(250px,70%)!important;margin:0 auto 22px!important;display:block!important} header h1{font-size:38px!important;letter-spacing:-1px!important}header .subtitle{font-size:14px!important;letter-spacing:3px!important;margin:4px 0 8px!important}header .accent{margin:0!important;width:58px!important;height:4px!important}
 .section-title{font-size:11px!important;letter-spacing:2px!important;margin-bottom:10px!important}.home-actions{gap:16px!important}.home-card{background:#fff!important;border:1px solid var(--app-border)!important;border-radius:12px!important;box-shadow:0 8px 24px rgba(16,43,67,.06)!important;min-height:126px!important;padding:22px 24px!important;transition:.18s ease!important}.home-card:hover{transform:translateY(-2px)!important;box-shadow:0 12px 28px rgba(16,43,67,.1)!important}.home-card.red{border-left:4px solid var(--app-orange)!important;border-bottom:0!important}.home-card.blue{border-left:4px solid var(--app-blue)!important;border-bottom:0!important}.home-card.gray{border-left:4px solid #8091a0!important;border-bottom:0!important}.home-card .arrow{width:36px;height:36px;border-radius:50%;background:#f3f7fa;display:grid;place-items:center;font-size:22px;color:var(--app-blue)}.home-card.red .arrow{color:var(--app-orange)}
@@ -666,7 +664,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
   .mobile-nav-overlay.active{display:block}
   .mobile-nav-close{display:flex!important;align-items:center;justify-content:center;position:absolute;right:12px;top:12px;width:36px;height:36px;border:1px solid rgba(255,255,255,.18);border-radius:9px;background:rgba(255,255,255,.08);color:#fff;font-size:20px;cursor:pointer}
 }
-@media(max-width:900px){.crm-sidebar{width:76px;padding:18px 10px}.crm-brand{justify-content:center;padding:4px 0 22px}.crm-brand>div:last-child,.sidebar-label,.crm-nav-item span:not(.nav-icon),.sidebar-bottom>div:last-child{display:none}.crm-nav-item{justify-content:center;padding:12px 8px}.sidebar-bottom{justify-content:center}.portal-wrap{padding-left:98px!important;padding-right:18px!important}.home-actions{grid-template-columns:1fr!important}.topbar{height:62px!important}.logo{width:125px!important}}
+@media(max-width:900px){.crm-sidebar{width:76px;padding:18px 10px}.crm-brand{justify-content:center;padding:4px 0 22px}.crm-brand>div:last-child,.sidebar-label,.crm-nav-item span:not(.nav-icon),.sidebar-bottom>div:last-child,#sidebarGoogleCalendarText{display:none}.crm-nav-item{justify-content:center;padding:12px 8px}.sidebar-bottom{justify-content:center}.sidebar-calendar-btn{justify-content:center;padding:12px 8px}.portal-wrap{padding-left:98px!important;padding-right:18px!important}.home-actions{grid-template-columns:1fr!important}.topbar{height:62px!important}.logo{width:125px!important}}
 @media(max-width:600px){.crm-sidebar{width:62px}.portal-wrap{padding-left:76px!important;padding-right:12px!important}.user-pill{max-width:180px;overflow:hidden;text-overflow:ellipsis}.home-card{padding:18px!important}.consulta,.dash-wrap{padding:16px!important}header h1{font-size:30px!important}}
 
 
@@ -694,7 +692,8 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     .crm-brand > div:last-child,
     .sidebar-label,
     .crm-nav-item span:not(.nav-icon),
-    .sidebar-bottom > div:last-child {
+    .sidebar-bottom > div:last-child,
+    #sidebarGoogleCalendarText {
       display: block !important;
     }
     .crm-nav-item {
@@ -1004,6 +1003,9 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <button type="button" class="crm-nav-item" data-nav="contactos"><span class="nav-icon">♙</span><span>Contactos</span></button>
         <button type="button" class="crm-nav-item" data-nav="seguimientos"><span class="nav-icon">☑</span><span>Seguimientos</span></button>
       </nav>
+      <button id="sidebarGoogleCalendarBtn" class="sidebar-calendar-btn" type="button" title="Conecta tu cuenta de Google Calendar una sola vez. La autorización se conserva en Supabase.">
+        <span class="sidebar-calendar-icon">📅</span><span id="sidebarGoogleCalendarText">Conectar Google Calendar</span>
+      </button>
       <div class="sidebar-bottom">
         <div class="sidebar-user-dot">RG</div>
         <div><strong id="sidebarUserName">Usuario</strong><small id="sidebarUserDirection">CRM VENTAS</small></div>
@@ -1163,7 +1165,6 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <div class="cliente-modal-head">
           <div><div class="eyebrow">Ficha de cliente</div><h2 id="clienteModalTitle">Cliente</h2></div>
           <div style="display:flex;gap:10px;align-items:center">
-            <button id="clienteGoogleCalendarBtn" class="cliente-google-calendar-btn" type="button">📅 Conectar Google Calendar</button>
             <button id="clienteFollowupBtn" class="cliente-followup-btn" type="button">＋ Registrar seguimiento</button>
             <button id="clienteEditBtn" class="cliente-edit-btn" type="button">✏️ Editar cliente</button>
             <button id="clienteModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
@@ -2998,8 +2999,9 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     }
   });
 
-  document.getElementById('clienteGoogleCalendarBtn').addEventListener('click', async () => {
-    const button = document.getElementById('clienteGoogleCalendarBtn');
+  document.getElementById('sidebarGoogleCalendarBtn').addEventListener('click', async () => {
+    const button = document.getElementById('sidebarGoogleCalendarBtn');
+    const buttonText = document.getElementById('sidebarGoogleCalendarText');
     const newTab = window.open('about:blank', '_blank');
     if (!newTab) {
       alert('El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.');
@@ -3007,8 +3009,8 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     }
     newTab.opener = null;
     button.disabled = true;
-    const originalText = button.textContent;
-    button.textContent = 'Abriendo Google…';
+    const originalText = buttonText.textContent;
+    buttonText.textContent = 'Abriendo Google…';
 
     try {
       const { data, error } = await supabaseClient.auth.getUser();
@@ -3026,7 +3028,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       console.error('Error al iniciar conexión de Google Calendar:', error);
     } finally {
       button.disabled = false;
-      button.textContent = originalText;
+      buttonText.textContent = originalText;
     }
   });
 
