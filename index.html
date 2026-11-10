@@ -1794,6 +1794,15 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       '#b45309', '#15803d', '#be185d', '#0369a1'
     ];
   
+    // JA tiene un único gerente: MA. Si el registro no trae gerente desde Notion,
+    // el dashboard lo identifica con MA sin modificar el dato original del cliente.
+    function getDashboardManager(cliente){
+      const gerente = String(cliente?.gerente || '').trim();
+      if (gerente) return gerente;
+      const direccion = String(cliente?.direccion || '').trim().toUpperCase();
+      return direccion === 'JA' ? 'MA' : 'Sin gerente asignado';
+    }
+
     function getDashboardGroupStyle(label, selected){
       if (!selected && DASHBOARD_DIRECTION_COLORS[label]) {
         const x = DASHBOARD_DIRECTION_COLORS[label];
@@ -1898,7 +1907,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         clientsSection.style.display = 'block';
         clientBars.innerHTML = clients.map(c => {
           const value = Number(c.forecast) || 0;
-          const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+          const gerente = getDashboardManager(c);
           return `
             <div class="client-bar-row" style="${getDashboardGroupStyle(gerente, selected)}" title="${c.cliente || 'Cliente'} — ${gerente}">
               <div class="client-bar-name">${c.cliente || 'Sin nombre'}<small style="color:var(--group-color)">${gerente}</small></div>
@@ -1917,7 +1926,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       if (selected) {
         const byGerente = {};
         visible.forEach(c => {
-          const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+          const gerente = getDashboardManager(c);
           if (!byGerente[gerente]) byGerente[gerente] = [];
           byGerente[gerente].push(c);
         });
@@ -2001,7 +2010,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         // Así se conserva la comparación entre agencias y se ve el peso de cada gerente.
         const managerSet = new Set();
         agencies.forEach(a => a.items.forEach(c => {
-          const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+          const gerente = getDashboardManager(c);
           managerSet.add(gerente);
         }));
         const managers = [...managerSet].sort((a,b) => a.localeCompare(b, 'es'));
@@ -2023,7 +2032,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         bars.innerHTML = agencies.map((a,i) => {
           const byManager = {};
           a.items.forEach(c => {
-            const gerente = (c.gerente || '').trim() || 'Sin gerente asignado';
+            const gerente = getDashboardManager(c);
             if (!byManager[gerente]) byManager[gerente] = [];
             byManager[gerente].push(c);
           });
