@@ -1075,7 +1075,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <div class="consulta-controls">
           <input id="consultaSearch" type="search" placeholder="Buscar cliente o agencia…">
           <select id="consultaDireccion" style="display:none">
-            <option value="">Todas las direcciones</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option>
+            <option value="">Todas las direcciones</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option><option value="JA">JA</option>
           </select>
           <select id="consultaEstado"><option value="">Todos los estados</option></select>
         </div>
@@ -1113,7 +1113,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             <option value="">Todas las direcciones</option>
             <option value="LAH">LAH</option>
             <option value="GS">GS</option>
-            <option value="BI">BI</option>
+            <option value="BI">BI</option><option value="JA">JA</option>
           </select>
           <select id="contactoAgencia">
             <option value="">Todas las agencias</option>
@@ -1174,7 +1174,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <form id="clienteEditForm" style="display:none">
           <div class="cliente-form-grid">
             <div class="cliente-form-field"><label for="editCliente">Cliente 🔒</label><input id="editCliente" class="locked" name="cliente" type="text" readonly disabled></div>
-            <div class="cliente-form-field"><label for="editDireccion">Dirección Comercial 🔒</label><select id="editDireccion" class="locked" name="direccion" tabindex="-1" disabled><option value="">Selecciona</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option></select></div>
+            <div class="cliente-form-field"><label for="editDireccion">Dirección Comercial 🔒</label><select id="editDireccion" class="locked" name="direccion" tabindex="-1" disabled><option value="">Selecciona</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option><option value="JA">JA</option></select></div>
             <div class="cliente-form-field"><label for="editTipoCliente">Tipo Cliente</label><select id="editTipoCliente" name="tipoCliente"><option value="">Selecciona una opción</option><option value="Efectivo">Efectivo</option><option value="Intercambio">Intercambio</option><option value="Efectivo / Intercambio">Efectivo / Intercambio</option><option value="Convenio Agencia">Convenio Agencia</option></select></div>
             <div class="cliente-form-field"><label for="editGerente">Gerente 🔒</label><input id="editGerente" class="locked" name="gerente" type="text" readonly disabled></div>
             <div class="cliente-form-field"><label for="editContacto">Contacto Cliente</label><input id="editContacto" name="nombreContacto" type="text"></div>
@@ -1231,7 +1231,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             <div class="contacto-form-field"><label for="editContactoPuesto">Puesto</label><input id="editContactoPuesto" type="text"></div>
             <div class="contacto-form-field"><label for="editContactoMail">Mail</label><input id="editContactoMail" type="email"></div>
             <div class="contacto-form-field"><label for="editContactoTelefono">Teléfono</label><input id="editContactoTelefono" type="tel"></div>
-            <div class="contacto-form-field"><label for="editContactoDireccion">Dirección Comercial</label><select id="editContactoDireccion"><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option></select></div>
+            <div class="contacto-form-field"><label for="editContactoDireccion">Dirección Comercial</label><select id="editContactoDireccion"><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option><option value="JA">JA</option></select></div>
             <div class="contacto-form-field"><label for="editContactoDireccionCasa">Dirección Casa</label><input id="editContactoDireccionCasa" type="text"></div>
             <div class="contacto-form-field"><label for="editContactoDireccionOficina">Dirección Oficina</label><input id="editContactoDireccionOficina" type="text"></div>
             <div class="contacto-form-field"><label for="editContactoCumpleanos">Fecha de cumpleaños</label><input id="editContactoCumpleanos" type="text" inputmode="numeric" placeholder="DD/MM"></div>
@@ -1285,7 +1285,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             <option value="">Todas las direcciones</option>
             <option value="LAH">LAH</option>
             <option value="GS">GS</option>
-            <option value="BI">BI</option>
+            <option value="BI">BI</option><option value="JA">JA</option>
           </select>
           <select id="seguimientoEstado"><option value="">Todos los estados</option></select>
         </div>
@@ -1313,7 +1313,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
           <div class="dash-filter" id="dashboardFilterWrap" style="display:none">
             <label for="dashboardDireccion">Dirección</label>
             <select id="dashboardDireccion">
-              <option value="">Todas</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option>
+              <option value="">Todas</option><option value="LAH">LAH</option><option value="GS">GS</option><option value="BI">BI</option><option value="JA">JA</option>
             </select>
           </div>
         </div>
@@ -1358,6 +1358,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
                 <span><i class="agency-dot" style="background:#218cc7"></i>LAH</span>
                 <span><i class="agency-dot" style="background:#2f855a"></i>GS</span>
                 <span><i class="agency-dot" style="background:#7c5ac7"></i>BI</span>
+                <span><i class="agency-dot" style="background:#d97706"></i>JA</span>
               </div>
               <div id="dashboardAgencyBars"></div>
             </div>
@@ -1419,7 +1420,13 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     'alejandra.medrano@gimm.com.mx': 'BI',
     'jorge.martinez@gimm.com.mx': 'BI',
     'yusileismy.caraballo@gimm.com.mx': 'BI',
-    'daniel.guisquet@gimm.com.mx': 'BI'
+    'daniel.guisquet@gimm.com.mx': 'BI',
+
+    // JA
+    'javier.arnau@gimm.com.mx': 'JA',
+    'miguel.aldasoro@gimm.com.mx': 'JA',
+    'javier.sarinana@gimm.com.mx': 'JA',
+    'alejandro.flores@gimm.com.mx': 'JA'
   };
   const MASTER_EMAILS = [
     'roger.guevara@gimm.com.mx',
@@ -1777,7 +1784,8 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     const DASHBOARD_DIRECTION_COLORS = {
       LAH: { color: '#218cc7', bg: '#eaf5fb' },
       GS:  { color: '#2f855a', bg: '#eaf7ef' },
-      BI:  { color: '#7c5ac7', bg: '#f1edfb' }
+      BI:  { color: '#7c5ac7', bg: '#f1edfb' },
+      JA:  { color: '#d97706', bg: '#fff7ed' }
     };
   
     const DASHBOARD_MANAGER_COLORS = [
@@ -1923,7 +1931,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
           }))
           .sort((a,b) => b.forecast - a.forecast);
       } else {
-        groups = ['LAH','GS','BI'].map(dir => {
+        groups = ['LAH','GS','BI','JA'].map(dir => {
           const items = visible.filter(c => c.direccion === dir);
           return {
             label: dir,
@@ -1973,7 +1981,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         byAgency[agencia].push(c);
       });
       const agencies = Object.entries(byAgency).map(([label,items]) => {
-        const byDirection = {LAH:[],GS:[],BI:[]};
+        const byDirection = {LAH:[],GS:[],BI:[],JA:[]};
         items.forEach(c => { const d=String(c.direccion||'').trim().toUpperCase(); if(byDirection[d]) byDirection[d].push(c); });
         return {label,items,clientes:items.length,forecast:sumNumbers(items,'forecast'),ponderado:sumNumbers(items,'forecastPonderado'),byDirection};
       }).sort((a,b)=>b.forecast-a.forecast);
@@ -2033,12 +2041,12 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         if (chartTitle) chartTitle.textContent = 'Forecast por Agencia';
         if (chartUnit) chartUnit.textContent = 'Millones de MXN';
         if (legend) {
-          legend.innerHTML = ['LAH','GS','BI'].map(d => `<span><i class="agency-dot" style="background:${DASHBOARD_DIRECTION_COLORS[d].color}"></i>${d}</span>`).join('');
+          legend.innerHTML = ['LAH','GS','BI','JA'].map(d => `<span><i class="agency-dot" style="background:${DASHBOARD_DIRECTION_COLORS[d].color}"></i>${d}</span>`).join('');
         }
 
         const maxForecast=Math.max(...agencies.map(a=>a.forecast),0);
         bars.innerHTML=agencies.map((a,i)=>{
-          const parts=['LAH','GS','BI'].map(d=>{const value=sumNumbers(a.byDirection[d],'forecast');const width=maxForecast?(value/maxForecast)*100:0;return `<div class="agency-bar-segment" title="${d}: ${formatForecast(value)}" style="width:${width}%;background:${DASHBOARD_DIRECTION_COLORS[d].color}"></div>`;}).join('');
+          const parts=['LAH','GS','BI','JA'].map(d=>{const value=sumNumbers(a.byDirection[d],'forecast');const width=maxForecast?(value/maxForecast)*100:0;return `<div class="agency-bar-segment" title="${d}: ${formatForecast(value)}" style="width:${width}%;background:${DASHBOARD_DIRECTION_COLORS[d].color}"></div>`;}).join('');
           return `<div class="agency-bar-row" data-agency-index="${i}" tabindex="0" role="button" aria-label="Abrir agencia ${escapeHtml(a.label)}" title="${escapeHtml(a.label)}"><div><div class="agency-bar-label">${escapeHtml(a.label)}</div><div class="agency-bar-meta">${a.clientes.toLocaleString('es-MX')} clientes</div></div><div class="agency-bar-track">${parts}</div><div class="agency-bar-value">${formatForecast(a.forecast)}</div></div>`;
         }).join('') || '<div class="dash-empty">Sin datos.</div>';
         bars.querySelectorAll('.agency-bar-row').forEach(row=>{const open=()=>openAgenciaFicha(window.dashboardAgencyData[Number(row.dataset.agencyIndex)]);row.addEventListener('click',open);row.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});});
@@ -2955,9 +2963,11 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         if (String(value) !== normalizedOriginal) payload[key] = value;
       }
 
-      // Si se va a crear o modificar una cita, validar primero la conexión del ejecutivo.
+      // Si existe una cita o se modificó/eliminó, validar y sincronizar Calendar.
+      // Esto también permite reintentar la sincronización si un intento anterior falló.
       const appointmentChanged = Object.prototype.hasOwnProperty.call(payload, 'Próximo Contacto');
-      if (appointmentChanged && appointmentDateTime) {
+      const shouldSyncAppointment = appointmentChanged || Boolean(appointmentDateTime);
+      if (shouldSyncAppointment && appointmentDateTime) {
         setEditStatus('Verificando Google Calendar…');
         const statusResponse = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=status`, {
           method: 'GET',
@@ -2983,7 +2993,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No fue posible guardar los cambios.');
-      if (appointmentChanged) {
+      if (shouldSyncAppointment) {
         setEditStatus(appointmentDateTime ? 'Sincronizando cita con Google Calendar…' : 'Actualizando Google Calendar…');
         const calendarResponse = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=schedule`, {
           method: 'POST',
