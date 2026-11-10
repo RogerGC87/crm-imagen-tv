@@ -1198,6 +1198,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             </select></div>
             <div class="cliente-form-field"><label for="editForecast">Forecast 🔒</label><input id="editForecast" class="locked" name="forecast" type="number" min="0" step="0.01" readonly disabled></div>
             <div class="cliente-form-field"><label for="editProximoContacto">Próximo Contacto</label><input id="editProximoContacto" name="proximoContacto" type="date"></div>
+            <div class="cliente-form-field"><label for="editHoraProgramada">Hora Programada (30 min)</label><input id="editHoraProgramada" name="horaProgramada" type="time" step="300"></div>
           </div>
           <div id="clienteEditStatus" class="cliente-edit-status"></div>
           <div class="cliente-modal-actions">
@@ -2774,9 +2775,12 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     }
     origenSelect.value = origenActual;
     document.getElementById('editForecast').value = getClienteField(cliente, 'forecast');
-    document.getElementById('editProximoContacto').value = values['Próximo Contacto'];
+    const proximoContactoRaw = String(values['Próximo Contacto'] || '');
+    document.getElementById('editProximoContacto').value = proximoContactoRaw ? proximoContactoRaw.slice(0, 10) : '';
+    document.getElementById('editHoraProgramada').value = proximoContactoRaw.includes('T') ? proximoContactoRaw.slice(11, 16) : '';
 
     clienteEditOriginal = { ...values };
+    clienteEditOriginal['Hora Programada'] = document.getElementById('editHoraProgramada').value;
   }
 
   function setEditStatus(message, type = '') {
@@ -2921,8 +2925,17 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         'Mail Agencia': document.getElementById('editMailAgencia').value.trim(),
         'Teléfono Agencia': document.getElementById('editTelefonoAgencia').value.trim(),
         'Origen': document.getElementById('editOrigen').value.trim(),
-        'Próximo Contacto': document.getElementById('editProximoContacto').value || ''
+        'Próximo Contacto': document.getElementById('editProximoContacto').value || '',
+        'Hora Programada': document.getElementById('editHoraProgramada').value || ''
       };
+      const appointmentDate = currentValues['Próximo Contacto'];
+      const appointmentTime = currentValues['Hora Programada'];
+      if (appointmentDate && !appointmentTime) throw new Error('Selecciona la hora de la cita.');
+      if (!appointmentDate && appointmentTime) throw new Error('Selecciona primero la fecha del próximo contacto.');
+      const appointmentDateTime = appointmentDate && appointmentTime
+        ? `${appointmentDate}T${appointmentTime}:00-06:00`
+        : '';
+      currentValues['Próximo Contacto'] = appointmentDateTime;
 
       // Enviamos únicamente los campos que realmente cambiaron.
       // Esto evita intentar actualizar propiedades que el usuario no tocó
@@ -2932,10 +2945,33 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         id: clienteSeleccionado.id
       };
       for (const [key, value] of Object.entries(currentValues)) {
-        if (String(value) !== String(clienteEditOriginal[key] ?? '')) {
-          payload[key] = value;
+        if (key === 'Hora Programada') continue;
+        const originalValue = key === 'Próximo Contacto'
+          ? String(clienteEditOriginal['Próximo Contacto'] || '')
+          : String(clienteEditOriginal[key] ?? '');
+        const normalizedOriginal = key === 'Próximo Contacto' && originalValue && !originalValue.includes('T')
+          ? originalValue
+          : originalValue;
+        if (String(value) !== normalizedOriginal) payload[key] = value;
+      }
+
+      // Si se va a crear o modificar una cita, validar primero la conexión del ejecutivo.
+      const appointmentChanged = Object.prototype.hasOwnProperty.call(payload, 'Próximo Contacto');
+      if (appointmentChanged && appointmentDateTime) {
+        setEditStatus('Verificando Google Calendar…');
+        const statusResponse = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=status`, {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            apikey: SUPABASE_PUBLISHABLE_KEY
+          }
+        });
+        const statusData = await statusResponse.json();
+        if (!statusResponse.ok || !statusData.connected) {
+          throw new Error(statusData.message || 'Conecta o reconecta tu Google Calendar antes de programar la cita.');
         }
       }
+
       const response = await fetch(NOTION_FUNCTION_URL, {
         method: 'POST',
         headers: {
@@ -2947,6 +2983,28 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'No fue posible guardar los cambios.');
+      if (appointmentChanged) {
+        setEditStatus(appointmentDateTime ? 'Sincronizando cita con Google Calendar…' : 'Actualizando Google Calendar…');
+        const calendarResponse = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=schedule`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${sessionData.session.access_token}`,
+            apikey: SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            clientPageId: clienteSeleccionado.id,
+            clientName: String(getClienteField(clienteSeleccionado, 'cliente') || ''),
+            date: appointmentDate,
+            time: appointmentTime,
+            duration: 30
+          })
+        });
+        const calendarData = await calendarResponse.json();
+        if (!calendarResponse.ok || !calendarData.success) {
+          throw new Error(calendarData.error || 'El cliente se guardó, pero no se pudo sincronizar la cita con Google Calendar.');
+        }
+      }
       Object.assign(clienteSeleccionado, data.cliente || payload);
       setEditStatus('Cliente actualizado correctamente.', 'success');
       document.getElementById('clienteEditForm').style.display = 'none';
