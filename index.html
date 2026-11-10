@@ -202,10 +202,13 @@
   .cliente-modal-close:hover{border-color:var(--red);color:var(--red)}
   .cliente-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 28px;padding:24px 28px 30px}
 
-  .cliente-edit-btn,.cliente-followup-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
+  .cliente-edit-btn,.cliente-followup-btn,.cliente-google-calendar-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer;font-size:13px}
   .cliente-edit-btn:hover{border-color:var(--blue);color:var(--blue)}
   .cliente-followup-btn{background:var(--blue);border-color:var(--blue);color:#fff}
   .cliente-followup-btn:hover{filter:brightness(.95)}
+  .cliente-google-calendar-btn{background:#fff;border-color:#1a73e8;color:#1967d2}
+  .cliente-google-calendar-btn:hover{background:#f3f8ff}
+  @media(max-width:760px){.cliente-modal-head>div:last-child{flex-wrap:wrap;justify-content:flex-end}.cliente-google-calendar-btn{order:3}}
   .cliente-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding:18px 28px;border-top:1px solid var(--border);background:#fbfcfd}
   .cliente-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;padding:24px 28px}
   .cliente-form-field{display:flex;flex-direction:column;gap:6px}
@@ -1160,6 +1163,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <div class="cliente-modal-head">
           <div><div class="eyebrow">Ficha de cliente</div><h2 id="clienteModalTitle">Cliente</h2></div>
           <div style="display:flex;gap:10px;align-items:center">
+            <button id="clienteGoogleCalendarBtn" class="cliente-google-calendar-btn" type="button">📅 Conectar Google Calendar</button>
             <button id="clienteFollowupBtn" class="cliente-followup-btn" type="button">＋ Registrar seguimiento</button>
             <button id="clienteEditBtn" class="cliente-edit-btn" type="button">✏️ Editar cliente</button>
             <button id="clienteModalClose" class="cliente-modal-close" type="button" aria-label="Cerrar ficha">×</button>
@@ -2991,6 +2995,38 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       newTab.close();
       alert('No se pudo validar tu sesión. Vuelve a iniciar sesión e inténtalo de nuevo.');
       console.error('Error al abrir seguimiento:', error);
+    }
+  });
+
+  document.getElementById('clienteGoogleCalendarBtn').addEventListener('click', async () => {
+    const button = document.getElementById('clienteGoogleCalendarBtn');
+    const newTab = window.open('about:blank', '_blank');
+    if (!newTab) {
+      alert('El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.');
+      return;
+    }
+    newTab.opener = null;
+    button.disabled = true;
+    const originalText = button.textContent;
+    button.textContent = 'Abriendo Google…';
+
+    try {
+      const { data, error } = await supabaseClient.auth.getUser();
+      if (error) throw error;
+      const email = (data?.user?.email || '').trim().toLowerCase();
+      if (!email) throw new Error('No se pudo identificar el correo de la sesión.');
+
+      const connectUrl = new URL(`${SUPABASE_URL}/functions/v1/google-calendar`);
+      connectUrl.searchParams.set('action', 'connect');
+      connectUrl.searchParams.set('email', email);
+      newTab.location.replace(connectUrl.toString());
+    } catch (error) {
+      newTab.close();
+      alert(error.message || 'No fue posible iniciar la conexión con Google Calendar.');
+      console.error('Error al iniciar conexión de Google Calendar:', error);
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
     }
   });
 
