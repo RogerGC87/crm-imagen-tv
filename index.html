@@ -2999,9 +2999,62 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     }
   });
 
+  const GOOGLE_CALENDAR_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/google-calendar`;
+
+  // Consulta el estado real usando el JWT de la sesión activa; nunca se confía
+  // en un correo enviado como parámetro para determinar quién está conectado.
+  async function refreshGoogleCalendarStatus() {
+    const button = document.getElementById('sidebarGoogleCalendarBtn');
+    const buttonText = document.getElementById('sidebarGoogleCalendarText');
+    if (!button || !buttonText) return;
+
+    button.disabled = true;
+    button.dataset.connected = 'unknown';
+    buttonText.textContent = 'Verificando Google Calendar…';
+    button.title = 'Consultando el estado de conexión de tu cuenta.';
+
+    try {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (error) throw error;
+      const session = data?.session;
+      if (!session?.access_token) throw new Error('Sesión no disponible.');
+
+      const response = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=status`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: SUPABASE_PUBLISHABLE_KEY
+        }
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (response.ok && result.connected === true) {
+        button.dataset.connected = 'true';
+        buttonText.textContent = 'Google Calendar conectado ✓';
+        button.title = `Cuenta conectada: ${result.email || session.user?.email || ''}`;
+        button.disabled = true;
+      } else if (response.ok && result.connected === false) {
+        button.dataset.connected = 'false';
+        buttonText.textContent = 'Conectar Google Calendar';
+        button.title = 'Conecta tu cuenta de Google Calendar una sola vez.';
+        button.disabled = false;
+      } else {
+        throw new Error(result.message || 'No se pudo verificar la conexión.');
+      }
+    } catch (error) {
+      console.error('Error al consultar estado de Google Calendar:', error);
+      button.dataset.connected = 'error';
+      buttonText.textContent = 'Reconectar Google Calendar';
+      button.title = 'No se pudo validar la autorización. Haz clic para volver a autorizar la cuenta.';
+      button.disabled = false;
+    }
+  }
+
   document.getElementById('sidebarGoogleCalendarBtn').addEventListener('click', async () => {
     const button = document.getElementById('sidebarGoogleCalendarBtn');
     const buttonText = document.getElementById('sidebarGoogleCalendarText');
+    if (button.dataset.connected === 'true') return;
+
     const newTab = window.open('about:blank', '_blank');
     if (!newTab) {
       alert('El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.');
@@ -3009,16 +3062,16 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     }
     newTab.opener = null;
     button.disabled = true;
-    const originalText = buttonText.textContent;
     buttonText.textContent = 'Abriendo Google…';
 
     try {
-      const { data, error } = await supabaseClient.auth.getUser();
+      const { data, error } = await supabaseClient.auth.getSession();
       if (error) throw error;
-      const email = (data?.user?.email || '').trim().toLowerCase();
-      if (!email) throw new Error('No se pudo identificar el correo de la sesión.');
+      const session = data?.session;
+      const email = (session?.user?.email || '').trim().toLowerCase();
+      if (!session?.access_token || !email) throw new Error('No se pudo validar la sesión del CRM.');
 
-      const connectUrl = new URL(`${SUPABASE_URL}/functions/v1/google-calendar`);
+      const connectUrl = new URL(GOOGLE_CALENDAR_FUNCTION_URL);
       connectUrl.searchParams.set('action', 'connect');
       connectUrl.searchParams.set('email', email);
       newTab.location.replace(connectUrl.toString());
@@ -3026,9 +3079,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       newTab.close();
       alert(error.message || 'No fue posible iniciar la conexión con Google Calendar.');
       console.error('Error al iniciar conexión de Google Calendar:', error);
-    } finally {
-      button.disabled = false;
-      buttonText.textContent = originalText;
+      await refreshGoogleCalendarStatus();
     }
   });
 
@@ -3118,6 +3169,8 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       sessionNote.textContent = 'Sesión persistente en la app móvil.';
     }
     showView('home');
+    // Se consulta cada vez que se abre el CRM o se restaura una sesión.
+    refreshGoogleCalendarStatus();
   }
 
   function markActivity() {
