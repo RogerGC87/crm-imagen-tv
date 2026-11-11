@@ -1007,7 +1007,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <span class="sidebar-calendar-icon">📅</span><span id="sidebarGoogleCalendarText">Conectar Google Calendar</span>
       </button>
       <div class="sidebar-bottom">
-        <div class="sidebar-user-dot">RG</div>
+        <div class="sidebar-user-dot" id="sidebarUserInitials">--</div>
         <div><strong id="sidebarUserName">Usuario</strong><small id="sidebarUserDirection">CRM VENTAS</small></div>
       </div>
     </aside>
@@ -3235,11 +3235,51 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     return RECOVERY_FLOW;
   }
 
+  function updateSidebarUser(user) {
+    const email = String(user?.email || '').trim();
+    const localPart = email.includes('@') ? email.split('@')[0] : '';
+    const normalizedEmail = email.toLowerCase();
+
+    // Nombres e iniciales conocidos; los demás usuarios se generan desde su correo.
+    const knownUsers = {
+      'roger.guevara@gimm.com.mx': { name: 'Roger Guevara', initials: 'RG' },
+      'vanesa.vinuela@gimm.com.mx': { name: 'Vanesa Viñuela', initials: 'VV' },
+      'mmajul@gimm.com.mx': { name: 'MA', initials: 'MA' },
+      'alejandra.cordova@gimm.com.mx': { name: 'Alejandra Córdova', initials: 'AC' },
+      'javier.arnau@gimm.com.mx': { name: 'Javier Arnau', initials: 'JA' },
+      'miguel.aldasoro@gimm.com.mx': { name: 'Miguel Aldasoro', initials: 'MA' },
+      'javier.sarinana@gimm.com.mx': { name: 'Javier Sariñana', initials: 'JS' },
+      'alejandro.flores@gimm.com.mx': { name: 'Alejandro Flores', initials: 'AF' }
+    };
+
+    const known = knownUsers[normalizedEmail];
+    const metadataName = user?.user_metadata?.full_name
+      || user?.user_metadata?.name
+      || user?.user_metadata?.display_name;
+    const fallbackName = localPart
+      ? localPart.split(/[._-]+/).filter(Boolean).map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(' ')
+      : 'Usuario';
+    const displayName = known?.name || metadataName || fallbackName;
+    const words = String(metadataName || fallbackName).trim().split(/[\s._-]+/).filter(Boolean);
+    const fallbackInitials = words.length > 1
+      ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
+      : (words[0] || 'U').slice(0, 2).toUpperCase();
+    const initials = known?.initials || fallbackInitials;
+
+    const initialsEl = document.getElementById('sidebarUserInitials');
+    const nameEl = document.getElementById('sidebarUserName');
+    const detailEl = document.getElementById('sidebarUserDirection');
+    if (initialsEl) initialsEl.textContent = initials;
+    if (nameEl) nameEl.textContent = displayName;
+    if (detailEl) detailEl.textContent = email || 'CRM VENTAS';
+    if (userPill) userPill.textContent = email || displayName || 'Usuario autorizado';
+  }
+
   function showPortal(user) {
     currentUser = user || null;
     authScreen.style.display = 'none';
     portal.style.display = 'block';
-    userPill.textContent = user?.email || 'Usuario autorizado';
+    updateSidebarUser(currentUser);
     markActivity();
     startInactivityTimer();
     if (KEEP_MOBILE_APP_SESSION && sessionNote) {
