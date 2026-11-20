@@ -211,6 +211,15 @@
   .cliente-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 20px;padding:24px 28px}
   .cliente-form-field{display:flex;flex-direction:column;gap:6px}
   .cliente-form-field.full{grid-column:1/-1}
+  .cliente-calendar-connect-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .cliente-calendar-connect-btn{border:1px solid #cbd9e3;background:#f7fbfd;color:#176b98;border-radius:9px;padding:10px 14px;font-weight:800;font-size:13px;cursor:pointer}
+  .cliente-calendar-connect-btn:hover{background:#eaf5fb;border-color:#9fc5da}
+  .cliente-calendar-connect-btn:disabled{opacity:.7;cursor:wait}
+  .cliente-calendar-connect-btn.is-connected{background:#edf8f1;border-color:#b9dfc7;color:#16794c;cursor:default}
+  .cliente-calendar-connect-status{font-size:12px;color:#718090;font-weight:700}
+  .cliente-calendar-connect-status.connected{color:#16794c}
+  .cliente-calendar-connect-status.error{color:#b42318}
+  .cliente-calendar-connect-help{font-size:11px;color:#8291a0;line-height:1.4}
   .cliente-form-field label{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#718090;font-weight:700}
   .cliente-form-field input,.cliente-form-field select{width:100%;box-sizing:border-box;border:1px solid #d6dde3;border-radius:9px;padding:11px 12px;font:inherit;color:var(--navy);background:#fff}
   .cliente-form-field input:focus,.cliente-form-field select:focus{outline:2px solid rgba(33,140,199,.18);border-color:var(--blue)}
@@ -1335,6 +1344,14 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             <div class="cliente-form-field"><label for="editForecast">Forecast 🔒</label><input id="editForecast" class="locked" name="forecast" type="number" min="0" step="0.01" readonly disabled></div>
             <div class="cliente-form-field"><label for="editProximoContacto">Próximo Contacto</label><input id="editProximoContacto" name="proximoContacto" type="date"></div>
             <div class="cliente-form-field"><label for="editHoraProgramada">Hora Programada (30 min)</label><input id="editHoraProgramada" name="horaProgramada" type="time" step="300"></div>
+            <div class="cliente-form-field full cliente-calendar-connect-field">
+              <label>Google Calendar</label>
+              <div class="cliente-calendar-connect-row">
+                <button id="clienteEditGoogleCalendarBtn" class="cliente-calendar-connect-btn" type="button">📅 Conectar Google Calendar</button>
+                <span id="clienteEditGoogleCalendarStatus" class="cliente-calendar-connect-status" aria-live="polite">Verificando conexión…</span>
+              </div>
+              <small class="cliente-calendar-connect-help">Puedes conectar tu cuenta sin cerrar esta edición. La autorización se abrirá en otra pestaña.</small>
+            </div>
           </div>
           <div id="clienteEditStatus" class="cliente-edit-status"></div>
           <div class="cliente-modal-actions">
@@ -3012,15 +3029,28 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       ['Próximo contacto', ['proximoContacto','proximo_contacto','fechaProximoContacto']],
       ['Estatus', ['completado','estado']]
     ];
+    const formatFechaRegistro = raw => {
+      if (!raw) return 'Fecha no disponible';
+      const datePart = String(raw).slice(0, 10);
+      const match = datePart.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return String(raw);
+      return `${match[3]}/${match[2]}/${match[1]}`;
+    };
     return `<div class="seguimientos-ficha-list">${items.map(item => {
       const tipo = pick(item,'tipo') || pick(item,'actividad') || 'Seguimiento';
-      const fecha = pick(item,'fecha','created_time','createdTime');
+      // La fecha de la propiedad Fecha es opcional. Si está vacía,
+      // mostramos la fecha de creación de la página de Notion.
+      const fechaRegistro = pick(item,'fechaRegistro','fecha_registro','created_time','createdTime','created_at','createdAt');
+      // La fecha que aparece en la esquina superior derecha es la fecha
+      // en que se creó el registro del seguimiento en Notion.
+      // No debe confundirse con Próximo contacto ni con la fecha de actividad.
+      const fecha = formatFechaRegistro(fechaRegistro || pick(item,'fecha'));
       const fields = labels.map(([label,keys]) => {
         let value = pick(item,...keys);
         if (label === 'Estatus' && value) value = /^(true|1)$/i.test(value) ? 'Completado' : (/^(false|0)$/i.test(value) ? 'Pendiente' : value);
         return value ? `<div class="seguimiento-ficha-field"><strong>${label}</strong>${escapeHtml(value)}</div>` : '';
       }).filter(Boolean).join('');
-      return `<article class="seguimiento-ficha-card"><div class="seguimiento-ficha-head"><span class="seguimiento-ficha-type">${escapeHtml(tipo)}</span><span class="seguimiento-ficha-date">${escapeHtml(fecha || 'Fecha no especificada')}</span></div>${fields ? `<div class="seguimiento-ficha-grid">${fields}</div>` : '<div class="seguimiento-ficha-empty">Sin detalles adicionales.</div>'}</article>`;
+      return `<article class="seguimiento-ficha-card"><div class="seguimiento-ficha-head"><span class="seguimiento-ficha-type">${escapeHtml(tipo)}</span><span class="seguimiento-ficha-date">${escapeHtml(fecha)}</span></div>${fields ? `<div class="seguimiento-ficha-grid">${fields}</div>` : '<div class="seguimiento-ficha-empty">Sin detalles adicionales.</div>'}</article>`;
     }).join('')}</div>`;
   }
 
@@ -3304,6 +3334,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     document.getElementById('clienteDetailGrid').style.display = 'none';
     document.getElementById('clienteEditBtn').style.display = 'none';
     document.getElementById('clienteEditForm').style.display = 'block';
+    refreshGoogleCalendarStatus();
     document.getElementById('editCliente').focus();
   });
 
@@ -3480,68 +3511,117 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 
   const GOOGLE_CALENDAR_FUNCTION_URL = `${SUPABASE_URL}/functions/v1/google-calendar`;
 
-  // Consulta el estado real usando el JWT de la sesión activa; nunca se confía
-  // en un correo enviado como parámetro para determinar quién está conectado.
-  async function refreshGoogleCalendarStatus() {
-    const button = document.getElementById('sidebarGoogleCalendarBtn');
-    const buttonText = document.getElementById('sidebarGoogleCalendarText');
-    if (!button || !buttonText) return;
-
-    button.disabled = true;
-    button.dataset.connected = 'unknown';
-    buttonText.textContent = 'Verificando Google Calendar…';
-    button.title = 'Consultando el estado de conexión de tu cuenta.';
-
-    try {
-      const { data, error } = await supabaseClient.auth.getSession();
-      if (error) throw error;
-      const session = data?.session;
-      if (!session?.access_token) throw new Error('Sesión no disponible.');
-
-      const response = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=status`, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-          apikey: SUPABASE_PUBLISHABLE_KEY
-        }
-      });
-      const result = await response.json().catch(() => ({}));
-
-      if (response.ok && result.connected === true) {
-        button.dataset.connected = 'true';
-        buttonText.textContent = 'Google Calendar conectado ✓';
-        button.title = `Cuenta conectada: ${result.email || session.user?.email || ''}`;
-        button.disabled = true;
-      } else if (response.ok && result.connected === false) {
-        button.dataset.connected = 'false';
-        buttonText.textContent = 'Conectar Google Calendar';
-        button.title = 'Conecta tu cuenta de Google Calendar una sola vez.';
-        button.disabled = false;
-      } else {
-        throw new Error(result.message || 'No se pudo verificar la conexión.');
+  // Consulta el estado real de Google Calendar usando la sesión activa.
+  async function getGoogleCalendarStatus() {
+    const { data, error } = await supabaseClient.auth.getSession();
+    if (error) throw error;
+    const session = data?.session;
+    if (!session?.access_token) throw new Error('Sesión no disponible.');
+    const response = await fetch(`${GOOGLE_CALENDAR_FUNCTION_URL}?action=status`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${session.access_token}`,
+        apikey: SUPABASE_PUBLISHABLE_KEY
       }
-    } catch (error) {
-      console.error('Error al consultar estado de Google Calendar:', error);
-      button.dataset.connected = 'error';
-      buttonText.textContent = 'Reconectar Google Calendar';
-      button.title = 'No se pudo validar la autorización. Haz clic para volver a autorizar la cuenta.';
-      button.disabled = false;
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || typeof result.connected !== 'boolean') {
+      throw new Error(result.message || 'No se pudo verificar la conexión.');
+    }
+    return { connected: result.connected, email: result.email || session.user?.email || '' };
+  }
+
+  function paintGoogleCalendarStatus(connected, email = '') {
+    const sidebarButton = document.getElementById('sidebarGoogleCalendarBtn');
+    const sidebarText = document.getElementById('sidebarGoogleCalendarText');
+    const editButton = document.getElementById('clienteEditGoogleCalendarBtn');
+    const editStatus = document.getElementById('clienteEditGoogleCalendarStatus');
+
+    if (sidebarButton && sidebarText) {
+      sidebarButton.dataset.connected = connected ? 'true' : 'false';
+      sidebarText.textContent = connected ? 'Google Calendar conectado ✓' : 'Conectar Google Calendar';
+      sidebarButton.title = connected
+        ? `Cuenta conectada: ${email}`
+        : 'Conecta tu cuenta de Google Calendar una sola vez.';
+      sidebarButton.disabled = connected;
+    }
+    if (editButton && editStatus) {
+      editButton.dataset.connected = connected ? 'true' : 'false';
+      editButton.textContent = connected ? '✓ Google Calendar conectado' : '📅 Conectar Google Calendar';
+      editButton.classList.toggle('is-connected', connected);
+      editButton.disabled = connected;
+      editStatus.textContent = connected
+        ? `Cuenta conectada${email ? `: ${email}` : ''}`
+        : 'No hay una cuenta conectada.';
+      editStatus.className = `cliente-calendar-connect-status${connected ? ' connected' : ''}`;
     }
   }
 
-  document.getElementById('sidebarGoogleCalendarBtn').addEventListener('click', async () => {
-    const button = document.getElementById('sidebarGoogleCalendarBtn');
-    const buttonText = document.getElementById('sidebarGoogleCalendarText');
-    if (button.dataset.connected === 'true') return;
+  async function refreshGoogleCalendarStatus() {
+    const sidebarButton = document.getElementById('sidebarGoogleCalendarBtn');
+    const sidebarText = document.getElementById('sidebarGoogleCalendarText');
+    const editButton = document.getElementById('clienteEditGoogleCalendarBtn');
+    const editStatus = document.getElementById('clienteEditGoogleCalendarStatus');
+    if (sidebarButton) {
+      sidebarButton.disabled = true;
+      sidebarButton.dataset.connected = 'unknown';
+    }
+    if (sidebarText) sidebarText.textContent = 'Verificando Google Calendar…';
+    if (editButton) {
+      editButton.disabled = true;
+      editButton.dataset.connected = 'unknown';
+      editButton.textContent = 'Verificando Google Calendar…';
+    }
+    if (editStatus) {
+      editStatus.textContent = 'Consultando el estado de conexión…';
+      editStatus.className = 'cliente-calendar-connect-status';
+    }
 
+    try {
+      const status = await getGoogleCalendarStatus();
+      paintGoogleCalendarStatus(status.connected, status.email);
+      return status.connected;
+    } catch (error) {
+      console.error('Error al consultar estado de Google Calendar:', error);
+      if (sidebarButton && sidebarText) {
+        sidebarButton.dataset.connected = 'error';
+        sidebarText.textContent = 'Reconectar Google Calendar';
+        sidebarButton.title = 'No se pudo validar la autorización. Haz clic para volver a autorizar.';
+        sidebarButton.disabled = false;
+      }
+      if (editButton && editStatus) {
+        editButton.dataset.connected = 'error';
+        editButton.textContent = '↻ Reconectar Google Calendar';
+        editButton.disabled = false;
+        editStatus.textContent = 'No se pudo validar la conexión. Puedes volver a autorizar.';
+        editStatus.className = 'cliente-calendar-connect-status error';
+      }
+      return false;
+    }
+  }
+
+  async function startGoogleCalendarConnection() {
     const newTab = window.open('about:blank', '_blank');
     if (!newTab) {
       alert('El navegador bloqueó la ventana de Google. Permite las ventanas emergentes para este sitio e inténtalo de nuevo.');
       return;
     }
     newTab.opener = null;
-    button.disabled = true;
-    buttonText.textContent = 'Abriendo Google…';
+
+    const sidebarButton = document.getElementById('sidebarGoogleCalendarBtn');
+    const sidebarText = document.getElementById('sidebarGoogleCalendarText');
+    const editButton = document.getElementById('clienteEditGoogleCalendarBtn');
+    const editStatus = document.getElementById('clienteEditGoogleCalendarStatus');
+    if (sidebarButton) sidebarButton.disabled = true;
+    if (sidebarText) sidebarText.textContent = 'Abriendo Google…';
+    if (editButton) {
+      editButton.disabled = true;
+      editButton.textContent = 'Abriendo Google…';
+    }
+    if (editStatus) {
+      editStatus.textContent = 'Autoriza tu cuenta en la otra pestaña; esta edición permanecerá abierta.';
+      editStatus.className = 'cliente-calendar-connect-status';
+    }
 
     try {
       const { data, error } = await supabaseClient.auth.getSession();
@@ -3554,12 +3634,36 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
       connectUrl.searchParams.set('action', 'connect');
       connectUrl.searchParams.set('email', email);
       newTab.location.replace(connectUrl.toString());
+
+      // Mientras el usuario autoriza en la nueva pestaña, verificamos la conexión.
+      // El formulario de edición no se cierra ni se reinicia.
+      let attempts = 0;
+      const poll = window.setInterval(async () => {
+        attempts += 1;
+        const connected = await refreshGoogleCalendarStatus();
+        if (connected || attempts >= 40) {
+          window.clearInterval(poll);
+          if (!connected && editStatus) {
+            editStatus.textContent = 'Cuando termines la autorización, vuelve a esta pestaña. Puedes actualizar el estado desde aquí.';
+          }
+        }
+      }, 3000);
     } catch (error) {
       newTab.close();
       alert(error.message || 'No fue posible iniciar la conexión con Google Calendar.');
       console.error('Error al iniciar conexión de Google Calendar:', error);
       await refreshGoogleCalendarStatus();
     }
+  }
+
+  document.getElementById('sidebarGoogleCalendarBtn').addEventListener('click', async () => {
+    if (document.getElementById('sidebarGoogleCalendarBtn').dataset.connected === 'true') return;
+    await startGoogleCalendarConnection();
+  });
+
+  document.getElementById('clienteEditGoogleCalendarBtn').addEventListener('click', async () => {
+    if (document.getElementById('clienteEditGoogleCalendarBtn').dataset.connected === 'true') return;
+    await startGoogleCalendarConnection();
   });
 
   document.getElementById('clienteModalClose').addEventListener('click', closeClienteFicha);
