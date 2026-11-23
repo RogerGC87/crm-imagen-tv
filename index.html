@@ -4019,16 +4019,17 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
 
   // Puente seguro de sesión para el módulo Descarga 2026 embebido.
   window.addEventListener('message', async (event) => {
-    if (event.origin !== window.location.origin) return;
     const frame = document.getElementById('descargaDashboardFrame');
+    // Solo se responde al iframe concreto del módulo Descarga 2026.
+    // No validamos event.origin porque la app de escritorio puede usar file:// (origin "null").
     if (!frame || event.source !== frame.contentWindow) return;
     if (event.data?.type !== 'crm-descarga-request-session') return;
     try {
       const { data, error } = await supabaseClient.auth.getSession();
       const accessToken = !error ? data.session?.access_token : null;
-      frame.contentWindow.postMessage({ type:'crm-descarga-session', access_token:accessToken }, event.origin);
+      frame.contentWindow.postMessage({ type:'crm-descarga-session', access_token:accessToken }, '*');
     } catch (_) {
-      frame.contentWindow.postMessage({ type:'crm-descarga-session', access_token:null }, event.origin);
+      frame.contentWindow.postMessage({ type:'crm-descarga-session', access_token:null }, '*');
     }
   });
 

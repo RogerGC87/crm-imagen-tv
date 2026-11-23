@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>DESCARGA 2026 | ACUMULADA A LA SEMANA</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{--orange:#f15a24;--navy:#172945;--ink:#203047;--muted:#718096;--bg:#f3f6fa;--line:#e7edf3;--green:#15966b}
@@ -95,22 +94,32 @@ async function loadAuthorizedDashboardData(){
     status.innerHTML = `<div class="secure-dashboard-status-card"><h2>${title}</h2><p>${message}</p></div>`;
   };
   try {
-    // El CRM y este iframe comparten origen; Supabase persiste la sesión
-    // en localStorage. El cliente del dashboard debe usar persistSession=true y la misma storageKey.
-    if (!window.supabase?.createClient) {
-      throw new Error('No se pudo cargar el cliente de autenticación de Supabase.');
-    }
-    const authClient = window.supabase.createClient(
-      'https://hxpqncahradmtgcsqcep.supabase.co',
-      'sb_publishable_CQyRNH0F-HZGOtBK2RlK1A_KhWWWLpI',
-      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } }
-    );
-    const { data: sessionData, error: sessionError } = await authClient.auth.getSession();
-    if (sessionError) throw new Error('No se pudo leer la sesión del CRM: ' + sessionError.message);
-    const token = sessionData?.session?.access_token;
-    if (!token) {
-      throw new Error('No se encontró una sesión activa. Verifica que el CRM y el dashboard estén publicados bajo el mismo dominio.');
-    }
+    // Solicita el token al CRM contenedor. Se valida el origen por la ventana
+    // padre y el source; funciona también dentro de la app de escritorio (file://).
+    const token = await new Promise((resolve, reject) => {
+      let settled = false;
+      const request = () => {
+        if (!settled) window.parent.postMessage({type:'crm-descarga-request-session'}, '*');
+      };
+      const listener = (event) => {
+        if (event.source !== window.parent || event.data?.type !== 'crm-descarga-session') return;
+        settled = true;
+        clearInterval(retry);
+        clearTimeout(timeout);
+        window.removeEventListener('message', listener);
+        if (event.data.access_token) resolve(event.data.access_token);
+        else reject(new Error('El CRM no entregó una sesión activa. Cierra sesión, vuelve a entrar y abre Descarga 2026.'));
+      };
+      window.addEventListener('message', listener);
+      const retry = setInterval(request, 400);
+      const timeout = setTimeout(() => {
+        settled = true;
+        clearInterval(retry);
+        window.removeEventListener('message', listener);
+        reject(new Error('El CRM no respondió la solicitud de sesión. Verifica que publicaste el index.html actualizado.'));
+      }, 15000);
+      request();
+    });
     const response = await fetch('https://hxpqncahradmtgcsqcep.supabase.co/functions/v1/dashboard-descarga', {
       method:'GET',
       headers:{Authorization:`Bearer ${token}`, apikey:'sb_publishable_CQyRNH0F-HZGOtBK2RlK1A_KhWWWLpI'}
