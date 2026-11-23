@@ -759,6 +759,12 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
   /* FIX LOGIN: logo centered independently from sidebar/header logo styles */
   .login-card .login-logo-wrap{width:100%;display:flex!important;justify-content:center!important;align-items:center!important;text-align:center!important;margin:0 0 22px!important;padding:0!important;}
   .login-card .login-logo-centered{display:block!important;width:min(250px,70%)!important;height:auto!important;margin:0!important;position:static!important;left:auto!important;right:auto!important;transform:none!important;float:none!important;}
+
+  /* Módulo independiente de Descarga 2026 */
+  .descarga-frame-wrap{width:100%;min-height:calc(100vh - 150px);background:#f3f6fa;border:1px solid var(--app-border,#dfe7ee);border-radius:14px;overflow:hidden}
+  .descarga-dashboard-frame{display:block;width:100%;height:calc(100vh - 155px);min-height:1050px;border:0;background:#f3f6fa}
+  @media(max-width:720px){.descarga-frame-wrap{min-height:calc(100vh - 125px);border-radius:10px}.descarga-dashboard-frame{height:calc(100vh - 130px);min-height:1250px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
 // Navegación lateral del nuevo shell visual
@@ -1129,6 +1135,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         <button type="button" class="crm-nav-item" data-nav="consumos"><span class="nav-icon">▤</span><span>Ficha Cliente</span></button>
         <button type="button" class="crm-nav-item" data-nav="contactos"><span class="nav-icon">♙</span><span>Contactos</span></button>
         <button type="button" class="crm-nav-item" data-nav="seguimientos"><span class="nav-icon">☑</span><span>Seguimientos</span></button>
+        <button type="button" class="crm-nav-item" data-nav="descarga"><span class="nav-icon">▥</span><span>Descarga 2026</span></button>
       </nav>
       <button id="sidebarGoogleCalendarBtn" class="sidebar-calendar-btn" type="button" title="Conecta tu cuenta de Google Calendar una sola vez. La autorización se conserva en Supabase.">
         <span class="sidebar-calendar-icon">📅</span><span id="sidebarGoogleCalendarText">Conectar Google Calendar</span>
@@ -1449,6 +1456,20 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
             <tbody id="seguimientoBody"><tr><td colspan="6" class="consulta-empty">Cargando clientes…</td></tr></tbody>
           </table>
         </div>
+      </div>
+    </section>
+
+    <section id="descargaView" class="view" aria-hidden="true">
+      <div class="view-nav">
+        <div class="view-title">Descarga 2026</div>
+      </div>
+      <div class="descarga-frame-wrap">
+        <iframe id="descargaDashboardFrame"
+          class="descarga-dashboard-frame"
+          src="./Dashboard_Descarga_2026.html"
+          title="Dashboard de Descarga 2026"
+          loading="lazy"
+          referrerpolicy="same-origin"></iframe>
       </div>
     </section>
 
@@ -1831,6 +1852,7 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
   const consumosView = document.getElementById('consumosView');
   const contactosView = document.getElementById('contactosView');
   const seguimientosView = document.getElementById('seguimientosView');
+  const descargaView = document.getElementById('descargaView');
   const dashboardView = document.getElementById('dashboardView');
 
   // Inicio = Dashboard
@@ -1839,7 +1861,8 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
     consulta: consultaView,
     consumos: consumosView,
     contactos: contactosView,
-    seguimientos: seguimientosView
+    seguimientos: seguimientosView,
+    descarga: descargaView
   };
 
   function activateSidebar(name) {
@@ -3993,6 +4016,22 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
   if (RECOVERY_FLOW) {
     showResetPassword();
   }
+
+  // Puente seguro de sesión para el módulo Descarga 2026 embebido.
+  window.addEventListener('message', async (event) => {
+    if (event.origin !== window.location.origin) return;
+    const frame = document.getElementById('descargaDashboardFrame');
+    if (!frame || event.source !== frame.contentWindow) return;
+    if (event.data?.type !== 'crm-descarga-request-session') return;
+    try {
+      const { data, error } = await supabaseClient.auth.getSession();
+      const accessToken = !error ? data.session?.access_token : null;
+      frame.contentWindow.postMessage({ type:'crm-descarga-session', access_token:accessToken }, event.origin);
+    } catch (_) {
+      frame.contentWindow.postMessage({ type:'crm-descarga-session', access_token:null }, event.origin);
+    }
+  });
+
 </script>
 </body>
 </html>

@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DESCARGA 2026 | ACUMULADA A LA SEMANA</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root{--orange:#f15a24;--navy:#172945;--ink:#203047;--muted:#718096;--bg:#f3f6fa;--line:#e7edf3;--green:#15966b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink)}
+main{max-width:1440px;margin:auto;padding:34px 38px}.eyebrow{font-size:12px;letter-spacing:1.6px;font-weight:800;color:var(--orange);text-transform:uppercase}
+h1{font-size:34px;letter-spacing:-1px;margin:7px 0 4px;color:#172945}.sub{color:var(--muted);font-size:14px;margin-bottom:22px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 24px}.pill{border:1px solid var(--line);border-radius:30px;background:white;padding:10px 16px;font-weight:700;color:#53657d;font-size:12px}
+.pill.active{background:#fff1eb;border-color:#ffd0bd;color:#d94a16}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 22px}.filters label{font-size:12px;color:var(--muted);font-weight:700}.filters select{border:1px solid var(--line);background:#fff;border-radius:9px;padding:10px 12px;color:var(--ink);min-width:150px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:18px 20px;box-shadow:0 3px 12px #17294508;text-align:center}.klabel{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px}.kvalue{font-size:25px;font-weight:800;color:#172945;margin-top:9px}.kfoot{font-size:11px;color:var(--muted);margin-top:6px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin-top:17px;box-shadow:0 3px 12px #17294508}.panelhead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:16px}.panel h2{font-size:16px;margin:0;color:#172945}.tag{font-size:11px;color:#687b93;background:#f2f5f9;border-radius:20px;padding:6px 10px}
+.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}th{text-align:right;color:#718096;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}td{text-align:right;padding:13px 12px;border-bottom:1px solid #eff2f6}tr.total{font-weight:800;background:#f7f9fc}td.pos{color:#15966b}td.neg{color:#c24136}tr.total td.pos{color:#15966b !important}tr.total td.neg{color:#c24136 !important}
+.chartbox{height:330px;position:relative}.unit-chartbox{height:230px;max-width:520px;margin:0 auto}.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.comparison-layout{display:grid;grid-template-columns:minmax(0,2.25fr) minmax(260px,.75fr);gap:16px;align-items:stretch}.director-panel,.unit-panel{margin-top:17px}.unit-panel{display:flex;flex-direction:column;min-width:0}.unit-panel .chartbox{flex:1;min-height:250px}.unit-chartbox{height:auto;max-width:100%;margin:0}.weekly-panel{margin-top:16px}.legend{font-size:11px;color:var(--muted)}
+.note{font-size:11px;color:#7a8798;line-height:1.5;margin-top:15px}
+@media(max-width:1100px){.comparison-layout{grid-template-columns:1fr}.unit-panel .chartbox{height:260px;min-height:260px}}\n@media(max-width:900px){main{padding:24px 16px}.grid{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}}
+@media(max-width:520px){.grid{grid-template-columns:1fr}.kvalue{font-size:22px}h1{font-size:28px}}
+
+.multi-wrap{position:relative;display:inline-block;min-width:185px}
+.multi-button{width:100%;min-height:42px;text-align:left;padding:10px 34px 10px 14px;border:1px solid #dce4ee;border-radius:10px;background:#fff;color:#172943;font:inherit;cursor:pointer;position:relative}
+.multi-button:after{content:"▾";position:absolute;right:13px;color:#53657b}
+.multi-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;min-width:100%;width:220px;padding:8px;background:#fff;border:1px solid #dce4ee;border-radius:10px;box-shadow:0 12px 28px #1b355022;z-index:30}
+.multi-menu.open{display:block}
+.multi-option{display:flex;align-items:center;gap:9px;padding:10px 8px;border-radius:7px;color:#26384e;cursor:pointer;white-space:nowrap}
+.multi-option:hover{background:#f3f6fa}
+.multi-option input{accent-color:#f15a24;width:16px;height:16px}
+.multi-actions{display:flex;justify-content:space-between;gap:8px;border-top:1px solid #e7edf3;padding:9px 5px 3px;margin-top:4px}
+.multi-actions button{border:0;background:transparent;color:#3577b9;font-size:12px;cursor:pointer;padding:5px}
+
+.manager-row td:first-child{padding-left:38px;color:#52657d;font-size:13px}
+.manager-row{background:#fbfcfe}
+.director-toggle{border:0;background:transparent;color:#172943;font:inherit;font-weight:700;cursor:pointer;padding:4px 7px 4px 0;margin-right:6px}
+.director-toggle .chev{display:inline-block;transition:transform .15s ease;color:#f15a24}
+.director-toggle[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.manager-label{font-weight:600}
+
+/* Alineación centrada del comparativo */
+#tbody td, thead th { text-align:center !important; }
+thead th:first-child, #tbody td:first-child { text-align:left !important; }
+#tbody .director-toggle { text-align:left; }
+#tbody .manager-row td:first-child { padding-left:28px; text-align:left !important; }
+
+.director-panel .tablewrap{overflow-x:hidden}
+.director-panel table{width:100%;min-width:0;table-layout:fixed}
+.director-panel th,.director-panel td{padding:11px 5px;font-size:12px;white-space:normal;overflow-wrap:anywhere}
+.director-panel th:first-child,.director-panel td:first-child{width:13%;text-align:left}
+.director-panel th:nth-child(2),.director-panel td:nth-child(2),
+.director-panel th:nth-child(3),.director-panel td:nth-child(3),
+.director-panel th:nth-child(4),.director-panel td:nth-child(4){width:12%}
+.director-panel th:nth-child(5),.director-panel td:nth-child(5),
+.director-panel th:nth-child(6),.director-panel td:nth-child(6),
+.director-panel th:nth-child(7),.director-panel td:nth-child(7),
+.director-panel th:nth-child(8),.director-panel td:nth-child(8){width:12.25%}
+.cutoff-label{margin-left:auto;color:#64748b;font-size:12px;font-weight:600;align-self:center;white-space:nowrap}\n@media(max-width:700px){.cutoff-label{width:100%;margin-left:0}}\n
+.secure-dashboard-status{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f3f6fa;padding:24px;text-align:center}
+.secure-dashboard-status-card{max-width:520px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:28px 32px;box-shadow:0 8px 28px rgba(15,23,42,.08);color:#19324f}
+.secure-dashboard-status-card h2{margin:0 0 10px;font-size:20px}.secure-dashboard-status-card p{margin:0;color:#64748b;line-height:1.55}
+
+</style></head><body>
+<div id="secureDashboardStatus" class="secure-dashboard-status"><div class="secure-dashboard-status-card"><h2>Validando acceso…</h2><p>Conectando con CRM VENTAS.</p></div></div><main>
+<h1 id="pageTitle">DESCARGA 2026 | ACUMULADA A LA SEMANA</h1>
+<div class="sub">Para mayor información y desglose, ir al dashboard comercial de Power BI</div>
+<div class="filters"><label>Director</label><select id="director"><option value="Todos">Todos</option></select><label>Unidad de negocio</label>
+<div class="multi-wrap" id="unitMulti">
+  <button type="button" class="multi-button" id="unitButton" aria-expanded="false">Todas</button>
+  <div class="multi-menu" id="unitMenu">
+    <label class="multi-option"><input type="checkbox" value="Nacional" checked> Nacional</label>
+    <label class="multi-option"><input type="checkbox" value="Local"> Local</label>
+    <label class="multi-option"><input type="checkbox" value="Digital"> Digital</label>
+    <div class="multi-actions"><button type="button" id="unitAll">Seleccionar todas</button><button type="button" id="unitNone">Limpiar</button></div>
+  </div>
+</div><span id="cutoffLabel" class="cutoff-label">Corte acumulado</span></div>
+<section class="grid">
+<div class="card"><div class="klabel">Descarga 2025</div><div class="kvalue" id="k2025">—</div><div class="kfoot"></div></div>
+<div class="card"><div class="klabel">Presupuesto 2026</div><div class="kvalue" id="kbudget">—</div><div class="kfoot"></div></div>
+<div class="card"><div class="klabel">Descarga 2026</div><div class="kvalue" id="k2026">—</div><div class="kfoot"></div></div>
+<div class="card"><div class="klabel">Cumplimiento</div><div class="kvalue" id="kcomp">—</div><div class="kfoot"></div></div>
+</section>
+<div class="comparison-layout">
+<div class="panel director-panel"><div class="panelhead"><h2>Comparativo por Director</h2><span class="tag">Millones de MXN · Importe Final</span></div><div class="tablewrap"><table><thead><tr><th>Director / Gerente</th><th>Descarga 2025</th><th>Presupuesto 2026</th><th>Descarga 2026</th><th>Vs. Año Anterior</th><th>% vs. Año Anterior</th><th>Vs. Ppto.</th><th>% vs. Ppto.</th></tr></thead><tbody id="tbody"></tbody></table></div></div>
+<div class="panel unit-panel"><div class="panelhead"><h2>Presupuesto por unidad</h2><span class="tag">Descarga 2026 vs. Ppto.</span></div><div class="chartbox unit-chartbox"><canvas id="unitChart"></canvas></div></div>
+</div>
+<div class="panel weekly-panel"><div class="panelhead"><h2>Comportamiento semanal</h2><span class="tag">NACIONAL · Descarga 2026 · Descarga 2025 · Presupuesto 2026</span></div><div class="chartbox"><canvas id="weeklyChart"></canvas></div></div>
+
+</main>
+<script>
+
+async function loadAuthorizedDashboardData(){
+  const status = document.getElementById('secureDashboardStatus');
+  const showStatus = (title, message) => {
+    status.style.display = 'flex';
+    status.innerHTML = `<div class="secure-dashboard-status-card"><h2>${title}</h2><p>${message}</p></div>`;
+  };
+  try {
+    // El CRM y este iframe comparten origen; Supabase persiste la sesión
+    // en localStorage. Leemos esa misma sesión desde el propio dashboard.
+    if (!window.supabase?.createClient) {
+      throw new Error('No se pudo cargar el cliente de autenticación de Supabase.');
+    }
+    const authClient = window.supabase.createClient(
+      'https://hxpqncahradmtgcsqcep.supabase.co',
+      'sb_publishable_CQyRNH0F-HZGOtBK2RlK1A_KhWWWLpI',
+      { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }
+    );
+    const { data: sessionData, error: sessionError } = await authClient.auth.getSession();
+    if (sessionError) throw new Error('No se pudo leer la sesión del CRM: ' + sessionError.message);
+    const token = sessionData?.session?.access_token;
+    if (!token) {
+      throw new Error('No se encontró una sesión activa. Verifica que el CRM y el dashboard estén publicados bajo el mismo dominio.');
+    }
+    const response = await fetch('https://hxpqncahradmtgcsqcep.supabase.co/functions/v1/dashboard-descarga', {
+      method:'GET',
+      headers:{Authorization:`Bearer ${token}`, apikey:'sb_publishable_CQyRNH0F-HZGOtBK2RlK1A_KhWWWLpI'}
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || 'No tienes permiso para consultar este dashboard.');
+    window.DESCARGA_ACCESS = payload.access || {};
+    if (status) status.style.display = 'none';
+    return payload.data;
+  } catch (error) {
+    showStatus('No se pudo abrir Descarga 2026', error.message || 'Error de autorización.');
+    throw error;
+  }
+}
+(async () => {
+
+const DATA = await loadAuthorizedDashboardData();
+const money = n => '$' + ((Number(n)||0)/1000000).toLocaleString('es-MX',{minimumFractionDigits:1,maximumFractionDigits:1});
+const pct = n => (n*100).toFixed(1)+'%';
+const dirSel=document.getElementById('director');
+const unitMenu=document.getElementById('unitMenu'), unitButton=document.getElementById('unitButton');
+const unitChecks=[...unitMenu.querySelectorAll('input[type="checkbox"]')];
+const allUnits=['Nacional','Local','Digital'];
+function selectedUnits(){return unitChecks.filter(c=>c.checked).map(c=>c.value)}
+function updateUnitButton(){
+ const chosen=selectedUnits();
+ unitButton.textContent=chosen.length===3?'Todas':chosen.length===0?'Ninguna':chosen.join(' + ');
+}
+unitButton.addEventListener('click',()=>{unitMenu.classList.toggle('open');unitButton.setAttribute('aria-expanded',unitMenu.classList.contains('open')?'true':'false')});
+unitChecks.forEach(c=>c.addEventListener('change',()=>{updateUnitButton();render()}));
+document.getElementById('unitAll').addEventListener('click',()=>{unitChecks.forEach(c=>c.checked=true);updateUnitButton();render()});
+document.getElementById('unitNone').addEventListener('click',()=>{unitChecks.forEach(c=>c.checked=false);updateUnitButton();render()});
+document.addEventListener('click',e=>{if(!document.getElementById('unitMulti').contains(e.target)){unitMenu.classList.remove('open');unitButton.setAttribute('aria-expanded','false')}});
+[...new Set(DATA.summary.filter(x=>x.Director!=='TOTAL').map(x=>x.Director))].forEach(v=>{let o=document.createElement('option');o.value=v;o.textContent=v;dirSel.appendChild(o)});
+if(window.DESCARGA_ACCESS?.role==='team'){
+  dirSel.value='Todos';
+  dirSel.disabled=true;
+  dirSel.title=`Acceso restringido a ${window.DESCARGA_ACCESS.direction}`;
+  const directorLabel=document.querySelector('label[for="director"]');
+  if(directorLabel) directorLabel.textContent=`Equipo ${window.DESCARGA_ACCESS.direction}`;
+}
+let weeklyChart, unitChart;
+function currentISOWeek(){
+ const now=new Date();
+ if(now.getFullYear()>2026)return 53;
+ if(now.getFullYear()<2026)return 0;
+ const d=new Date(Date.UTC(now.getFullYear(),now.getMonth(),now.getDate()));
+ d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+ const y0=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+ return Math.min(53,Math.ceil((((d-y0)/86400000)+1)/7));
+}
+function render(){
+ const selected=dirSel.value, units=selectedUnits();
+ const cutoffWeek=currentISOWeek();
+ document.getElementById('pageTitle').textContent=`DESCARGA 2026 | ACUMULADA A LA SEMANA ${cutoffWeek||'—'}`;
+ document.getElementById('cutoffLabel').style.display='none';
+ const ytdDetail=DATA.weeklyDetail.filter(x=>x.week<=cutoffWeek&&units.includes(x['Unidad de negocio'])&&(selected==='Todos'||x.Director===selected));
+ const grouped={};
+ ytdDetail.forEach(x=>{
+   if(!grouped[x.Director])grouped[x.Director]={Director:x.Director,descarga2025:0,presupuesto2026:0,descarga2026:0};
+   grouped[x.Director].descarga2025+=x.real2025||0;
+   grouped[x.Director].presupuesto2026+=x.presupuesto2026||0;
+   grouped[x.Director].descarga2026+=x.real2026||0;
+ });
+ let rows=Object.values(grouped).map(r=>({...r,variacion:r.descarga2026-r.descarga2025,cumplimiento:r.presupuesto2026?r.descarga2026/r.presupuesto2026:0}));
+ const totals=rows.reduce((a,r)=>{
+   a.a+=r.descarga2025||0; a.b+=r.presupuesto2026||0;
+   if(r.descarga2026!==null && r.descarga2026!==undefined)a.c+=r.descarga2026;
+   return a;
+ },{a:0,b:0,c:0});
+ document.getElementById('k2025').textContent=money(totals.a);
+ document.getElementById('kbudget').textContent=money(totals.b);
+ document.getElementById('k2026').textContent=money(totals.c);
+ document.getElementById('kcomp').textContent=pct(totals.b?totals.c/totals.b:0);
+ // Ordenar directores de mayor a menor según Descarga 2026.
+ rows.sort((a,b)=>(b.descarga2026||0)-(a.descarga2026||0));
+ const expanded=window.expandedDirectors||new Set();
+ const tableRows=rows.map(r=>{
+   const managerRows=ytdDetail.filter(m=>m.Director===r.Director);
+   const mgr={};
+   managerRows.forEach(m=>{
+     if(!mgr[m.Gerente])mgr[m.Gerente]={Gerente:m.Gerente,descarga2025:0,presupuesto2026:0,descarga2026:0};
+     mgr[m.Gerente].descarga2025+=m.real2025||0;
+     mgr[m.Gerente].presupuesto2026+=m.presupuesto2026||0;
+     mgr[m.Gerente].descarga2026+=m.real2026||0;
+   });
+   const isOpen=expanded.has(r.Director);
+   const v=r.descarga2026-r.descarga2025;
+   const va=r.presupuesto2026?(r.descarga2026||0)-r.presupuesto2026:0;
+   const pctAnterior=r.descarga2025?v/r.descarga2025:0;
+   const pctPpto=r.presupuesto2026?((r.descarga2026||0)/r.presupuesto2026)-1:0;
+   const directorHtml=`<tr class="director-row"><td><button class="director-toggle" data-director="${r.Director}" aria-expanded="${isOpen}"><span class="chev">▶</span> ${r.Director}</button></td><td>${money(r.descarga2025)}</td><td>${money(r.presupuesto2026)}</td><td>${money(r.descarga2026||0)}</td><td class="${v>=0?'pos':'neg'}">${money(v)}</td><td class="${pctAnterior>=0?'pos':'neg'}">${pct(pctAnterior)}</td><td class="${va>=0?'pos':'neg'}">${money(va)}</td><td class="${pctPpto>=0?'pos':'neg'}">${pct(pctPpto)}</td></tr>`;
+   const children=Object.values(mgr).sort((a,b)=>(b.descarga2026||0)-(a.descarga2026||0)).map(g=>{
+     const gv=g.descarga2026-g.descarga2025;
+     const gva=g.descarga2026-g.presupuesto2026;
+     const gpctAnterior=g.descarga2025?gv/g.descarga2025:0;
+     const gpctPpto=g.presupuesto2026?(g.descarga2026/g.presupuesto2026)-1:0;
+     return `<tr class="manager-row" data-parent="${r.Director}" ${isOpen?'':'hidden'}><td><span class="manager-label">↳ ${g.Gerente}</span></td><td>${money(g.descarga2025)}</td><td>${money(g.presupuesto2026)}</td><td>${money(g.descarga2026)}</td><td class="${gv>=0?'pos':'neg'}">${money(gv)}</td><td class="${gpctAnterior>=0?'pos':'neg'}">${pct(gpctAnterior)}</td><td class="${gva>=0?'pos':'neg'}">${money(gva)}</td><td class="${gpctPpto>=0?'pos':'neg'}">${pct(gpctPpto)}</td></tr>`;
+   }).join('');
+   return directorHtml+children;
+ }).join('');
+ document.getElementById('tbody').innerHTML=tableRows+
+ `<tr class="total"><td>TOTAL</td><td>${money(totals.a)}</td><td>${money(totals.b)}</td><td>${money(totals.c)}</td><td class="${totals.c-totals.a>=0?'pos':'neg'}">${money(totals.c-totals.a)}</td><td class="${totals.c-totals.a>=0?'pos':'neg'}" >${pct(totals.a?(totals.c-totals.a)/totals.a:0)}</td><td class="${totals.c-totals.b>=0?'pos':'neg'}">${money(totals.c-totals.b)}</td><td class="${totals.c-totals.b>=0?'pos':'neg'}" >${pct(totals.b?(totals.c/totals.b)-1:0)}</td></tr>`;
+ document.querySelectorAll('.director-toggle').forEach(btn=>btn.addEventListener('click',()=>{
+   const dir=btn.dataset.director; window.expandedDirectors=window.expandedDirectors||new Set();
+   const nowOpen=!window.expandedDirectors.has(dir);
+   if(nowOpen)window.expandedDirectors.add(dir);else window.expandedDirectors.delete(dir);
+   btn.setAttribute('aria-expanded',String(nowOpen));
+   document.querySelectorAll(`.manager-row[data-parent="${dir}"]`).forEach(tr=>tr.hidden=!nowOpen);
+ }));
+ const weeklySeries=(DATA.weeklyByDirector&&DATA.weeklyByDirector[selected])?DATA.weeklyByDirector[selected]:DATA.weekly;
+ if(weeklyChart)weeklyChart.destroy();
+ weeklyChart=new Chart(document.getElementById('weeklyChart'),{
+   type:'bar',
+   data:{
+     labels:weeklySeries.map(x=>x.semana),
+     datasets:[
+       {type:'bar',label:'Desc 2026',data:weeklySeries.map(x=>x.real2026),backgroundColor:'#286a9f',borderColor:'#286a9f',borderWidth:0,barPercentage:.82,categoryPercentage:.88,order:3},
+       {type:'line',label:'Desc 2025',data:weeklySeries.map(x=>x.real2025),borderColor:'#9aa6b5',backgroundColor:'rgba(154,166,181,.30)',fill:true,tension:.28,pointRadius:0,pointHoverRadius:4,borderWidth:1.5,order:2},
+       {type:'line',label:'Ppto 2026',data:weeklySeries.map(x=>x.presupuesto2026),borderColor:'#ef233c',backgroundColor:'#ef233c',borderDash:[6,5],fill:false,tension:.25,pointRadius:2.5,pointHoverRadius:5,borderWidth:2,order:1}
+     ]
+   },
+   options:{
+     responsive:true,maintainAspectRatio:false,
+     interaction:{mode:'index',intersect:false},
+     plugins:{
+       legend:{position:'top',align:'end',labels:{usePointStyle:true,boxWidth:8,font:{size:11,weight:'600'}}},
+       tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': $'+(ctx.parsed.y/1000000).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})+' M'}}
+     },
+     scales:{
+       x:{grid:{display:false},ticks:{maxRotation:55,minRotation:45,font:{size:10}}},
+       y:{beginAtZero:true,grid:{color:'rgba(120,140,160,.12)'},ticks:{callback:v=>'$'+(v/1000000).toFixed(1)+' M'}}
+     }
+   }
+ });
+ if(unitChart)unitChart.destroy();
+ const unitRows=ytdDetail;
+ const unitTotals=unitRows.reduce((a,x)=>{a.descarga2026+=x.real2026||0;a.presupuesto2026+=x.presupuesto2026||0;return a;},{descarga2026:0,presupuesto2026:0});
+ const unitLabel=units.length===1?units[0]:(units.length===0?'Sin unidades':'Total unidades seleccionadas');
+ unitChart=new Chart(document.getElementById('unitChart'),{type:'bar',data:{labels:[unitLabel],datasets:[{label:'Descarga 2026',data:[unitTotals.descarga2026],backgroundColor:'#8aa5c4'},{label:'Presupuesto 2026',data:[unitTotals.presupuesto2026],backgroundColor:'#f15a24'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{
+ legend:{position:'bottom',align:'center',labels:{boxWidth:18,boxHeight:12,padding:8,font:{size:11}}},
+ tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+money(ctx.parsed.y)+' M'}}
+},scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000000).toFixed(0)+' M'}}}}});
+}
+dirSel.addEventListener('change',()=>{window.expandedDirectors=new Set();render()});updateUnitButton();render();
+
+})().catch(error => console.error('Dashboard Descarga:', error));
+</script></body></html>
