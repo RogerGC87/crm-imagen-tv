@@ -58,9 +58,12 @@ thead th:first-child, #tbody td:first-child { text-align:left !important; }
 .secure-dashboard-status-card{max-width:520px;background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:28px 32px;box-shadow:0 8px 28px rgba(15,23,42,.08);color:#19324f}
 .secure-dashboard-status-card h2{margin:0 0 10px;font-size:20px}.secure-dashboard-status-card p{margin:0;color:#64748b;line-height:1.55}
 
+
+.page-heading{display:flex;align-items:center;justify-content:space-between;gap:18px}.page-heading h1{margin:7px 0 4px}.view-switch{display:flex;gap:9px;flex-shrink:0}.view-btn{border:1px solid #d7e0ea;background:#e8edf3;color:#53657d;border-radius:9px;padding:11px 22px;font-size:12px;font-weight:800;letter-spacing:.4px;cursor:pointer;min-width:112px}.view-btn.active{background:#193d61;color:#fff;border-color:#193d61;box-shadow:0 3px 10px #193d6125}.monthly-panel{margin-top:0}.monthly-filters{margin:4px 0 16px}.month-menu{max-height:330px;overflow:auto}.clear-months{border:1px solid #dce4ee;border-radius:9px;background:#fff;padding:10px 14px;color:#53657d;font-weight:700;cursor:pointer}.monthly-table{min-width:1120px}.monthly-table th,.monthly-table td{padding:10px 8px;font-size:11px}.monthly-table th:first-child,.monthly-table td:first-child{text-align:left}.monthly-table .monthly-director{font-weight:800;background:#f3f6fa}.monthly-table .monthly-manager td:first-child{padding-left:28px;font-weight:700;color:#52657d}.monthly-table .monthly-client td:first-child{padding-left:52px;color:#64748b}.monthly-toggle{border:0;background:transparent;color:#193d61;font:inherit;font-weight:800;cursor:pointer;padding:3px 5px 3px 0}.monthly-table tr[hidden]{display:none!important}
+@media(max-width:760px){.page-heading{align-items:flex-start;flex-direction:column}.view-switch{width:100%}.view-btn{flex:1}.monthly-filters{align-items:stretch}.monthly-filters label{width:100%}}
 </style></head><body>
 <div id="secureDashboardStatus" class="secure-dashboard-status"><div class="secure-dashboard-status-card"><h2>Validando acceso…</h2><p>Conectando con CRM VENTAS.</p></div></div><main>
-<h1 id="pageTitle">DESCARGA 2026 | ACUMULADA A LA SEMANA</h1>
+<div class="page-heading"><h1 id="pageTitle">DESCARGA 2026 | ACUMULADA A LA SEMANA</h1><div class="view-switch" role="group" aria-label="Cambiar vista"><button type="button" id="weeklyMode" class="view-btn active">SEMANAL</button><button type="button" id="monthlyMode" class="view-btn">MENSUAL</button></div></div>
 <div class="sub">Para mayor información y desglose, ir al dashboard comercial de Power BI</div>
 <div class="filters"><label>Director</label><select id="director"><option value="Todos">Todos</option></select><label>Unidad de negocio</label>
 <div class="multi-wrap" id="unitMulti">
@@ -82,7 +85,13 @@ thead th:first-child, #tbody td:first-child { text-align:left !important; }
 <div class="panel director-panel"><div class="panelhead"><h2>Comparativo por Director</h2><span class="tag">Millones de MXN · Importe Final</span></div><div class="tablewrap"><table><thead><tr><th>Director / Gerente</th><th>Descarga 2025</th><th>Presupuesto 2026</th><th>Descarga 2026</th><th>Vs. Año Anterior</th><th>% vs. Año Anterior</th><th>Vs. Ppto.</th><th>% vs. Ppto.</th></tr></thead><tbody id="tbody"></tbody></table></div></div>
 <div class="panel unit-panel"><div class="panelhead"><h2>Presupuesto por unidad</h2><span class="tag">Descarga 2026 vs. Ppto.</span></div><div class="chartbox unit-chartbox"><canvas id="unitChart"></canvas></div></div>
 </div>
-<div class="panel weekly-panel"><div class="panelhead"><h2>Comportamiento semanal</h2><span class="tag">NACIONAL · Descarga 2026 · Descarga 2025 · Presupuesto 2026</span></div><div class="chartbox"><canvas id="weeklyChart"></canvas></div></div>
+<section id="monthlyView" class="panel monthly-panel" hidden>
+  <div class="panelhead"><h2>Comparativo mensual de descarga 2026 vs. 2025</h2><span class="tag">Millones de MXN · Importe Final</span></div>
+  <div class="filters monthly-filters"><label>Meses</label><div class="multi-wrap" id="monthMulti"><button type="button" class="multi-button" id="monthButton">Todos los meses</button><div class="multi-menu month-menu" id="monthMenu"></div></div><label>Cliente</label><select id="clientFilter"><option value="Todos">Todos</option></select><button type="button" class="clear-months" id="clearMonths">Limpiar selección</button></div>
+  <div class="tablewrap"><table class="monthly-table"><thead><tr><th>Director / Gerente / Cliente</th><th>Clientes 2026</th><th>Clientes 2025</th><th>Diferencia clientes</th><th>Descarga 2025</th><th>Presupuesto 2026</th><th>Descarga 2026</th><th>Vs. 2025</th><th>% vs. 2025</th><th>Vs. Ppto.</th><th>% vs. Ppto.</th></tr></thead><tbody id="monthlyTbody"></tbody></table></div>
+  <div class="note">La descarga 2026 está conciliada proporcionalmente por Director y Unidad de negocio con los totales de la vista semanal. Los meses seleccionados se comparan contra los mismos meses de 2025 y su presupuesto correspondiente.</div>
+ </section>
+ <div class="panel weekly-panel"><div class="panelhead"><h2>Comportamiento semanal</h2><span class="tag">NACIONAL · Descarga 2026 · Descarga 2025 · Presupuesto 2026</span></div><div class="chartbox"><canvas id="weeklyChart"></canvas></div></div>
 
 </main>
 <script>
@@ -171,7 +180,7 @@ function currentISOWeek(){
  const y0=new Date(Date.UTC(d.getUTCFullYear(),0,1));
  return Math.min(53,Math.ceil((((d-y0)/86400000)+1)/7));
 }
-function render(){
+function renderWeekly(){
  const selected=dirSel.value, units=selectedUnits();
  const cutoffWeek=currentISOWeek();
  document.getElementById('pageTitle').textContent=`DESCARGA 2026 | ACUMULADA A LA SEMANA ${cutoffWeek||'—'}`;
@@ -264,7 +273,45 @@ function render(){
  tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+money(ctx.parsed.y)+' M'}}
 },scales:{y:{beginAtZero:true,ticks:{callback:v=>'$'+(v/1000000).toFixed(0)+' M'}}}}});
 }
-dirSel.addEventListener('change',()=>{window.expandedDirectors=new Set();render()});updateUnitButton();render();
+
+const monthNames=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const monthMenu=document.getElementById('monthMenu'),monthButton=document.getElementById('monthButton');
+monthMenu.innerHTML=monthNames.map((m,i)=>`<label class="multi-option"><input type="checkbox" value="${i+1}" checked> ${m}</label>`).join('')+`<div class="multi-actions"><button type="button" id="monthAll">Seleccionar todos</button><button type="button" id="monthNone">Limpiar</button></div>`;
+const monthChecks=[...monthMenu.querySelectorAll('input[type="checkbox"]')];
+const clientSel=document.getElementById('clientFilter');
+const clientNames=[...new Set((DATA.monthlyDetail||[]).map(r=>r.Cliente))].sort((a,b)=>a.localeCompare(b,'es'));
+clientNames.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;clientSel.appendChild(o)});
+function selectedMonths(){return monthChecks.filter(c=>c.checked).map(c=>Number(c.value))}
+function updateMonthButton(){const a=selectedMonths();monthButton.textContent=a.length===12?'Todos los meses':a.length===0?'Ningún mes':a.map(n=>monthNames[n-1].slice(0,3)).join(', ')}
+monthButton.addEventListener('click',()=>{monthMenu.classList.toggle('open');monthButton.setAttribute('aria-expanded',monthMenu.classList.contains('open')?'true':'false')});
+monthChecks.forEach(c=>c.addEventListener('change',()=>{updateMonthButton();render()}));
+document.getElementById('monthAll').addEventListener('click',()=>{monthChecks.forEach(c=>c.checked=true);updateMonthButton();render()});
+document.getElementById('monthNone').addEventListener('click',()=>{monthChecks.forEach(c=>c.checked=false);updateMonthButton();render()});
+document.getElementById('clearMonths').addEventListener('click',()=>{monthChecks.forEach(c=>c.checked=false);updateMonthButton();render()});
+clientSel.addEventListener('change',render);
+document.addEventListener('click',e=>{if(!document.getElementById('monthMulti').contains(e.target)){monthMenu.classList.remove('open');monthButton.setAttribute('aria-expanded','false')}});
+let currentMode='weekly';
+function monthlyMoney(n){return '$'+((Number(n)||0)/1000000).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function monthlyRender(){
+ const months=selectedMonths(), selected=dirSel.value, units=selectedUnits(), client=clientSel.value;
+ const rows=(DATA.monthlyDetail||[]).filter(r=>months.includes(Number(r.Mes))&&units.includes(r['Unidad de negocio'])&&(selected==='Todos'||r.Director===selected)&&(client==='Todos'||r.Cliente===client));
+ const sum=(arr,key)=>arr.reduce((a,r)=>a+(Number(r[key])||0),0);
+ const totals={real2025:sum(rows,'real2025'),presupuesto2026:sum(rows,'presupuesto2026'),real2026:sum(rows,'real2026')};
+ document.getElementById('k2025').textContent=monthlyMoney(totals.real2025);document.getElementById('kbudget').textContent=monthlyMoney(totals.presupuesto2026);document.getElementById('k2026').textContent=monthlyMoney(totals.real2026);document.getElementById('kcomp').textContent=pct(totals.presupuesto2026?totals.real2026/totals.presupuesto2026:0);
+ document.getElementById('pageTitle').textContent='DESCARGA 2026 | '+(months.length===12?'TODOS LOS MESES':months.length===0?'SIN MESES SELECCIONADOS':months.map(n=>monthNames[n-1].toUpperCase()).join(' + '));
+ const groups={}; rows.forEach(r=>{const k=r.Director+'|'+r.Gerente;if(!groups[r.Director])groups[r.Director]={rows:[],managers:{}};if(!groups[r.Director].managers[r.Gerente])groups[r.Director].managers[r.Gerente]=[];groups[r.Director].managers[r.Gerente].push(r);groups[r.Director].rows.push(r)});
+ const agg=arr=>({c26:new Set(arr.filter(x=>x.real2026>0).map(x=>x.Cliente)).size,c25:new Set(arr.filter(x=>x.real2025>0).map(x=>x.Cliente)).size,a:sum(arr,'real2025'),b:sum(arr,'presupuesto2026'),c:sum(arr,'real2026')});
+ const line=(label,arr,cls='',id='')=>{const v=agg(arr),diff=v.c-v.a,pctv=v.a?diff/v.a:0,bd=v.c-v.b,bpct=v.b?bd/v.b:0;return `<tr class="${cls}" ${id?`data-key="${id}"`:''}><td>${label}</td><td>${v.c26}</td><td>${v.c25}</td><td class="${v.c26-v.c25>=0?'pos':'neg'}">${v.c26-v.c25}</td><td>${monthlyMoney(v.a)}</td><td>${monthlyMoney(v.b)}</td><td>${monthlyMoney(v.c)}</td><td class="${diff>=0?'pos':'neg'}">${monthlyMoney(diff)}</td><td class="${pctv>=0?'pos':'neg'}">${pct(pctv)}</td><td class="${bd>=0?'pos':'neg'}">${monthlyMoney(bd)}</td><td class="${bpct>=0?'pos':'neg'}">${pct(bpct)}</td></tr>`};
+ let out='';Object.keys(groups).sort().forEach(di=>{const g=groups[di];const did='d-'+di.replace(/[^a-z0-9]/gi,'');out+=line(`<button class="monthly-toggle" data-month-toggle="${did}">＋ ${di}</button>`,g.rows,'monthly-director');Object.keys(g.managers).sort().forEach(mgr=>{const mid=did+'-'+mgr.replace(/[^a-z0-9]/gi,'');const mrows=g.managers[mgr];out+=line('↳ '+mgr,mrows,'monthly-manager',mid);const byClient={};mrows.forEach(r=>{if(!byClient[r.Cliente])byClient[r.Cliente]=[];byClient[r.Cliente].push(r)});Object.keys(byClient).sort().forEach(cl=>out+=line('• '+cl,byClient[cl],'monthly-client',mid+'-c'));});});
+ out+=line('TOTAL',rows,'total');document.getElementById('monthlyTbody').innerHTML=out;
+ document.querySelectorAll('[data-month-toggle]').forEach(btn=>btn.addEventListener('click',()=>{const id=btn.dataset.monthToggle;const open=btn.textContent.includes('＋');btn.textContent=(open?'－ ':'＋ ')+btn.textContent.slice(2);let showManagers=open;document.querySelectorAll(`tr.monthly-manager[data-key^="${id}-"]`).forEach(tr=>{tr.hidden=!showManagers});document.querySelectorAll(`tr.monthly-client[data-key^="${id}-"]`).forEach(tr=>{tr.hidden=true})}));
+ document.querySelectorAll('.monthly-manager').forEach(tr=>{tr.hidden=true;tr.style.cursor='pointer';tr.addEventListener('click',()=>{const id=tr.dataset.key;const clients=document.querySelectorAll(`tr.monthly-client[data-key="${id}-c"]`);clients.forEach(x=>x.hidden=!x.hidden)})});document.querySelectorAll('.monthly-client').forEach(tr=>tr.hidden=true);
+}
+function setMode(mode){currentMode=mode;const monthly=mode==='monthly';document.getElementById('weeklyMode').classList.toggle('active',!monthly);document.getElementById('monthlyMode').classList.toggle('active',monthly);document.querySelector('.comparison-layout').hidden=monthly;document.querySelector('.weekly-panel').hidden=monthly;document.getElementById('monthlyView').hidden=!monthly;document.getElementById('cutoffLabel').style.display=monthly?'none':'none';if(monthly)monthlyRender();else renderWeekly()}
+function render(){if(currentMode==='monthly')monthlyRender();else renderWeekly()}
+document.getElementById('weeklyMode').addEventListener('click',()=>setMode('weekly'));document.getElementById('monthlyMode').addEventListener('click',()=>setMode('monthly'));
+
+dirSel.addEventListener('change',()=>{window.expandedDirectors=new Set();render()});updateUnitButton();updateMonthButton();render();
 
 })().catch(error => console.error('Dashboard Descarga:', error));
 </script></body></html>
