@@ -13,7 +13,10 @@ h1{font-size:34px;letter-spacing:-1px;margin:7px 0 4px;color:#172945}.sub{color:
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:white;border:1px solid var(--line);border-radius:15px;padding:18px 20px;box-shadow:0 3px 12px #17294508;text-align:center}.klabel{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px}.kvalue{font-size:25px;font-weight:800;color:#172945;margin-top:9px}.kfoot{font-size:11px;color:var(--muted);margin-top:6px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:15px;padding:20px;margin-top:17px;box-shadow:0 3px 12px #17294508}.panelhead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:16px}.panel h2{font-size:16px;margin:0;color:#172945}.tag{font-size:11px;color:#687b93;background:#f2f5f9;border-radius:20px;padding:6px 10px}
 .tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:760px;font-size:13px}th{text-align:right;color:#718096;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}td{text-align:right;padding:13px 12px;border-bottom:1px solid #eff2f6}tr.total{font-weight:800;background:#f7f9fc}td.pos{color:#15966b}td.neg{color:#c24136}tr.total td.pos{color:#15966b !important}tr.total td.neg{color:#c24136 !important}
-.chartbox{height:330px;position:relative}.unit-chartbox{height:230px;max-width:520px;margin:0 auto}.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.comparison-layout{display:grid;grid-template-columns:minmax(0,2.25fr) minmax(260px,.75fr);gap:16px;align-items:stretch}.director-panel,.unit-panel{margin-top:17px}.unit-panel{display:flex;flex-direction:column;min-width:0}.unit-panel .chartbox{flex:1;min-height:250px}.unit-chartbox{height:auto;max-width:100%;margin:0}.weekly-panel{margin-top:16px}.legend{font-size:11px;color:var(--muted)}
+.chartbox{height:330px;position:relative}.unit-chartbox{height:230px;max-width:520px;margin:0 auto}
+.monthly-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+.monthly-chart-panel{margin:0;min-width:0}.monthly-chart-panel .chartbox{height:290px}
+@media(max-width:850px){.monthly-charts{grid-template-columns:1fr}.monthly-chart-panel .chartbox{height:260px}}.split{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}.comparison-layout{display:grid;grid-template-columns:minmax(0,2.25fr) minmax(260px,.75fr);gap:16px;align-items:stretch}.director-panel,.unit-panel{margin-top:17px}.unit-panel{display:flex;flex-direction:column;min-width:0}.unit-panel .chartbox{flex:1;min-height:250px}.unit-chartbox{height:auto;max-width:100%;margin:0}.weekly-panel{margin-top:16px}.legend{font-size:11px;color:var(--muted)}
 .note{font-size:11px;color:#7a8798;line-height:1.5;margin-top:15px}
 @media(max-width:1100px){.comparison-layout{grid-template-columns:1fr}.unit-panel .chartbox{height:260px;min-height:260px}}\n@media(max-width:900px){main{padding:24px 16px}.grid{grid-template-columns:repeat(2,1fr)}.split{grid-template-columns:1fr}}
 @media(max-width:520px){.grid{grid-template-columns:1fr}.kvalue{font-size:22px}h1{font-size:28px}}
@@ -107,6 +110,10 @@ thead th:first-child, #tbody td:first-child { text-align:left !important; }
   <div class="panel monthly-comparison-panel">
    <div class="panelhead"><h2>📈 Tabla de Descarga 2026 vs 2025</h2><span class="tag">Millones de MXN · Importe Final</span></div>
    <div class="tablewrap"><table class="monthly-table"><thead><tr><th>Director</th><th>Clientes<br>2026</th><th>Clientes<br>2025</th><th>Diferencia<br>Clientes</th><th>$ 2025<br>Descarga</th><th>$ 2026<br>Presupuesto</th><th>$ 2026<br>Descarga</th><th>Dif. Desc. vs<br>Ppto.</th><th>Avance<br>Ppto.</th><th>Dif. 2026 vs<br>2025</th><th>Var. 2026 vs<br>2025</th></tr></thead><tbody id="monthlyTbody"></tbody></table></div>
+  </div>
+  <div class="monthly-charts">
+   <div class="panel monthly-chart-panel"><div class="panelhead"><h2>Descarga 2026 vs. Descarga 2025</h2><span class="tag">Millones de MXN</span></div><div class="chartbox"><canvas id="monthlyCompareChart"></canvas></div></div>
+   <div class="panel monthly-chart-panel"><div class="panelhead"><h2>Descarga 2026 vs. Presupuesto</h2><span class="tag">Millones de MXN</span></div><div class="chartbox"><canvas id="monthlyBudgetChart"></canvas></div></div>
   </div>
  </section>
  <div class="panel weekly-panel"><div class="panelhead"><h2>Comportamiento semanal</h2><span class="tag">NACIONAL · Descarga 2026 · Descarga 2025 · Presupuesto 2026</span></div><div class="chartbox"><canvas id="weeklyChart"></canvas></div></div>
@@ -311,11 +318,48 @@ clientSel.addEventListener('change',render);
 document.addEventListener('click',e=>{if(!document.getElementById('monthMulti').contains(e.target)){monthMenu.classList.remove('open');monthButton.setAttribute('aria-expanded','false')}});
 let currentMode='weekly';
 function monthlyMoney(n){return '$'+((Number(n)||0)/1000000).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
+let monthlyCompareChart=null, monthlyBudgetChart=null;
+function renderMonthlyCharts(rows, selectedUnitsForChart){
+ const unitOrder=['Nacional','Local','Digital'];
+ const labels=unitOrder.filter(u=>selectedUnitsForChart.includes(u));
+ const sums=Object.fromEntries(labels.map(u=>[u,{real2025:0,real2026:0,budget:0}]));
+ rows.forEach(r=>{
+   const u=r['Unidad de negocio'];
+   if(!sums[u])return;
+   sums[u].real2025+=Number(r.real2025)||0;
+   sums[u].real2026+=Number(r.real2026)||0;
+   sums[u].budget+=Number(r.presupuesto2026)||0;
+ });
+ const makeOptions=()=>({
+   responsive:true,maintainAspectRatio:false,
+   interaction:{mode:'index',intersect:false},
+   plugins:{
+     legend:{position:'bottom',align:'center',labels:{boxWidth:18,boxHeight:12,padding:10,font:{size:11}}},
+     tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+monthlyMoney(ctx.parsed.y)}}
+   },
+   scales:{
+     x:{grid:{display:false},ticks:{font:{size:11}}},
+     y:{beginAtZero:true,grid:{color:'rgba(120,140,160,.16)'},ticks:{callback:v=>'$'+(v/1000000).toLocaleString('es-MX',{maximumFractionDigits:0})+' M'}}
+   }
+ });
+ const makeData=(second=false)=>({
+   labels,
+   datasets:[
+     {label:'Descarga 2026',data:labels.map(u=>sums[u].real2026),backgroundColor:'#8aa5c4',borderWidth:0},
+     {label:second?'Presupuesto 2026':'Descarga 2025',data:labels.map(u=>second?sums[u].budget:sums[u].real2025),backgroundColor:'#f15a24',borderWidth:0}
+   ]
+ });
+ if(monthlyCompareChart)monthlyCompareChart.destroy();
+ if(monthlyBudgetChart)monthlyBudgetChart.destroy();
+ monthlyCompareChart=new Chart(document.getElementById('monthlyCompareChart'),{type:'bar',data:makeData(false),options:makeOptions()});
+ monthlyBudgetChart=new Chart(document.getElementById('monthlyBudgetChart'),{type:'bar',data:makeData(true),options:makeOptions()});
+}
 function monthlyRender(){
  const months=selectedMonths(), selected=dirSel.value, units=selectedUnits(), client=clientSel.value;
  const rows=(DATA.monthlyDetail||[]).filter(r=>months.includes(Number(r.Mes))&&units.includes(r['Unidad de negocio'])&&(selected==='Todos'||r.Director===selected)&&(client==='Todos'||(r.Anunciante||r.Cliente)===client));
  const sum=(arr,key)=>arr.reduce((a,r)=>a+(Number(r[key])||0),0);
  const totals={real2025:sum(rows,'real2025'),presupuesto2026:sum(rows,'presupuesto2026'),real2026:sum(rows,'real2026')};
+ renderMonthlyCharts(rows,units);
  const vs2025=totals.real2025?(totals.real2026-totals.real2025)/totals.real2025:0;
  const vsBudget=totals.presupuesto2026?(totals.real2026-totals.presupuesto2026)/totals.presupuesto2026:0;
  document.getElementById('monthlyDownload2026').textContent=monthlyMoney(totals.real2026);
