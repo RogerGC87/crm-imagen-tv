@@ -425,4 +425,23 @@ document.getElementById('weeklyMode').addEventListener('click',()=>setMode('week
 dirSel.addEventListener('change',()=>{window.expandedDirectors=new Set();render()});updateUnitButton();updateMonthButton();document.getElementById('monthlyTopFilters').hidden=true;render();
 
 })().catch(error => console.error('Dashboard Descarga:', error));
-</script></body></html>
+</script></body></html><style>
+/* Distribución adaptable: todos los filtros visibles sin scroll horizontal. */
+@media(min-width:761px){
+  .filters{display:grid;grid-template-columns:auto minmax(105px,.8fr) auto minmax(155px,1.05fr) auto minmax(125px,.8fr) auto minmax(180px,1.6fr) auto;column-gap:9px;row-gap:8px;align-items:center;overflow:visible;white-space:normal;width:100%;}
+  .filters>#director{width:100%;min-width:0;flex:none;}
+  .filters>#unitMulti{width:100%;min-width:0;flex:none;}
+  .filters #monthMulti{width:100%;min-width:0;flex:none;}
+  .filters #clientFilter{width:100%;min-width:0;flex:none;}
+  .filters .multi-wrap{min-width:0;}
+  .filters .multi-button{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .filters #clearMonths{white-space:nowrap;padding:10px 11px;font-size:12px;}
+  .filters .cutoff-label{grid-column:9;justify-self:end;}
+}
+@media(max-width:760px){
+  .filters{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 10px;overflow:visible;white-space:normal;width:100%;}
+  .filters>#director,.filters>#unitMulti,.filters #monthMulti,.filters #clientFilter{width:100%;min-width:0;flex:none;}
+  .filters #clearMonths{grid-column:2;justify-self:start;}
+  .filters .cutoff-label{grid-column:1/-1;margin:0;}
+}
+</style>
