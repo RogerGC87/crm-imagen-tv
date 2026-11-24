@@ -292,7 +292,7 @@ const monthMenu=document.getElementById('monthMenu'),monthButton=document.getEle
 monthMenu.innerHTML=monthNames.map((m,i)=>`<label class="multi-option"><input type="checkbox" value="${i+1}" checked> ${m}</label>`).join('')+`<div class="multi-actions"><button type="button" id="monthAll">Seleccionar todos</button><button type="button" id="monthNone">Limpiar</button></div>`;
 const monthChecks=[...monthMenu.querySelectorAll('input[type="checkbox"]')];
 const clientSel=document.getElementById('clientFilter');
-const clientNames=[...new Set((DATA.monthlyDetail||[]).map(r=>r.Cliente))].sort((a,b)=>a.localeCompare(b,'es'));
+const clientNames=[...new Set((DATA.monthlyDetail||[]).map(r=>r.Anunciante||r.Cliente))].sort((a,b)=>a.localeCompare(b,'es'));
 clientNames.forEach(n=>{const o=document.createElement('option');o.value=n;o.textContent=n;clientSel.appendChild(o)});
 function selectedMonths(){return monthChecks.filter(c=>c.checked).map(c=>Number(c.value))}
 function updateMonthButton(){const a=selectedMonths();monthButton.textContent=a.length===12?'Todos los meses':a.length===0?'Ningún mes':a.map(n=>monthNames[n-1].slice(0,3)).join(', ')}
@@ -307,7 +307,7 @@ let currentMode='weekly';
 function monthlyMoney(n){return '$'+((Number(n)||0)/1000000).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function monthlyRender(){
  const months=selectedMonths(), selected=dirSel.value, units=selectedUnits(), client=clientSel.value;
- const rows=(DATA.monthlyDetail||[]).filter(r=>months.includes(Number(r.Mes))&&units.includes(r['Unidad de negocio'])&&(selected==='Todos'||r.Director===selected)&&(client==='Todos'||r.Cliente===client));
+ const rows=(DATA.monthlyDetail||[]).filter(r=>months.includes(Number(r.Mes))&&units.includes(r['Unidad de negocio'])&&(selected==='Todos'||r.Director===selected)&&(client==='Todos'||(r.Anunciante||r.Cliente)===client));
  const sum=(arr,key)=>arr.reduce((a,r)=>a+(Number(r[key])||0),0);
  const totals={real2025:sum(rows,'real2025'),presupuesto2026:sum(rows,'presupuesto2026'),real2026:sum(rows,'real2026')};
  const vs2025=totals.real2025?(totals.real2026-totals.real2025)/totals.real2025:0;
@@ -324,7 +324,7 @@ function monthlyRender(){
  // Resumen mensual por director, con desglose expandible de gerentes y clientes.
  const byDirector={};
  rows.forEach(r=>{
-   const d=r.Director||'Sin director', g=r.Gerente||'Sin gerente', c=r.Cliente||'Sin cliente';
+   const d=r.Director||'Sin director', g=r.Gerente||'Sin gerente', c=r.Anunciante||r.Cliente||'Sin cliente';
    if(!byDirector[d])byDirector[d]={name:d,managers:{},clients2026:new Set(),clients2025:new Set(),real2025:0,budget:0,real2026:0};
    const D=byDirector[d];
    if(!D.managers[g])D.managers[g]={name:g,clients:{},real2025:0,budget:0,real2026:0};
@@ -351,8 +351,8 @@ function monthlyRender(){
    }).join('');
    return head+children;
  }).join('');
- const totalClients2026=new Set(rows.filter(r=>(Number(r.real2026)||0)>0).map(r=>r.Cliente)).size;
- const totalClients2025=new Set(rows.filter(r=>(Number(r.real2025)||0)>0).map(r=>r.Cliente)).size;
+ const totalClients2026=new Set(rows.filter(r=>(Number(r.real2026)||0)>0).map(r=>r.Anunciante||r.Cliente)).size;
+ const totalClients2025=new Set(rows.filter(r=>(Number(r.real2025)||0)>0).map(r=>r.Anunciante||r.Cliente)).size;
  const totalDiff=totals.real2026-totals.presupuesto2026, totalYoy=totals.real2026-totals.real2025;
  document.getElementById('monthlyTbody').innerHTML=summaryRows+`<tr class="monthly-total"><td>TOTAL</td><td>${totalClients2026}</td><td>${totalClients2025}</td><td>${totalClients2026-totalClients2025}</td><td>${monthlyMoney(totals.real2025)}</td><td>${monthlyMoney(totals.presupuesto2026)}</td><td>${monthlyMoney(totals.real2026)}</td><td>${fmtDiff(totalDiff)}</td><td>${pct(totals.presupuesto2026?totals.real2026/totals.presupuesto2026:0)}</td><td>${fmtDiff(totalYoy)}</td><td>${fmtPct(totals.real2025?totalYoy/totals.real2025:0)}</td></tr>`;
  document.querySelectorAll('[data-month-parent]').forEach(btn=>{if(btn.tagName!=='BUTTON')return;btn.addEventListener('click',()=>{const key=btn.dataset.monthParent,open=btn.getAttribute('aria-expanded')!=='true';btn.setAttribute('aria-expanded',String(open));btn.textContent=open?'−':'+';document.querySelectorAll(`tr[data-month-parent="${key}"]`).forEach(tr=>{tr.hidden=!open;if(!open){const nested=tr.querySelector('button[data-month-parent]');if(nested){nested.setAttribute('aria-expanded','false');nested.textContent='+';document.querySelectorAll(`tr[data-month-parent="${nested.dataset.monthParent}"]`).forEach(x=>x.hidden=true)}}});});});
