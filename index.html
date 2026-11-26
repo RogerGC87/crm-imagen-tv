@@ -246,6 +246,26 @@
   .seguimiento-ficha-field{min-width:0;font-size:13px;color:#526579;overflow-wrap:anywhere}
   .seguimiento-ficha-field strong{display:block;margin-bottom:2px;color:#8291a0;font-size:9px;letter-spacing:1px;text-transform:uppercase}
   .seguimiento-ficha-empty{font-size:13px;color:#718090;font-weight:400}
+  .seguimiento-ficha-files{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;padding-top:10px;border-top:1px solid #e8eef3}
+  .seguimiento-ficha-files-title{width:100%;font-size:9px;font-weight:800;letter-spacing:1px;color:#8291a0;text-transform:uppercase}
+  .seguimiento-ficha-file{display:inline-flex;align-items:center;gap:6px;max-width:100%;padding:7px 10px;border:1px solid #dce6ee;border-radius:8px;background:#fff;color:#27658b;text-decoration:none;font-size:11px;font-weight:700}
+  .seguimiento-ficha-file:hover{background:#f0f7fb;border-color:#9fc5dc}
+  .seguimiento-ficha-file span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .seguimiento-ficha-actions{display:flex;justify-content:flex-end;margin-top:10px}
+  .seguimiento-upload-group{display:flex;flex-direction:column;gap:6px;padding:9px 0;border-top:1px solid #e6edf2}
+  .seguimiento-upload-group input[type=file]{font-size:12px;max-width:100%;color:var(--navy)}
+  .seguimiento-upload-note{font-size:11px;color:#718096;padding:2px 0 8px}
+  .seguimiento-edit-btn{border:1px solid #cfd8df;background:#fff;color:var(--navy);border-radius:8px;padding:7px 11px;font-size:11px;font-weight:800;cursor:pointer}
+  .seguimiento-edit-btn:hover{border-color:var(--blue);color:var(--blue)}
+  .seguimiento-inline-editor{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #e4ebf0}
+  .seguimiento-inline-editor label{display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#718090;font-weight:800;margin-bottom:4px}
+  .seguimiento-inline-editor input,.seguimiento-inline-editor select,.seguimiento-inline-editor textarea{box-sizing:border-box;width:100%;border:1px solid #d6dde3;border-radius:8px;padding:9px 10px;font:inherit;font-size:12px;color:var(--navy);background:#fff}
+  .seguimiento-inline-editor textarea{min-height:65px;resize:vertical}
+  .seguimiento-inline-editor .full{grid-column:1/-1}
+  .seguimiento-inline-actions{display:flex;justify-content:flex-end;gap:8px;grid-column:1/-1}
+  .seguimiento-inline-status{grid-column:1/-1;font-size:11px;color:#627283}
+  .seguimiento-inline-status.error{color:#b42318}
+  @media(max-width:600px){.seguimiento-inline-editor{grid-template-columns:1fr}.seguimiento-inline-editor .full{grid-column:auto}}
   @media(max-width:600px){.seguimiento-ficha-grid{grid-template-columns:1fr}}
 
   .contactos-table tbody tr.contacto-row{cursor:pointer;pointer-events:auto}
@@ -3073,7 +3093,48 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         if (label === 'Estatus' && value) value = /^(true|1)$/i.test(value) ? 'Completado' : (/^(false|0)$/i.test(value) ? 'Pendiente' : value);
         return value ? `<div class="seguimiento-ficha-field"><strong>${label}</strong>${escapeHtml(value)}</div>` : '';
       }).filter(Boolean).join('');
-      return `<article class="seguimiento-ficha-card"><div class="seguimiento-ficha-head"><span class="seguimiento-ficha-type">${escapeHtml(tipo)}</span><span class="seguimiento-ficha-date">${escapeHtml(fecha)}</span></div>${fields ? `<div class="seguimiento-ficha-grid">${fields}</div>` : '<div class="seguimiento-ficha-empty">Sin detalles adicionales.</div>'}</article>`;
+
+      // Los archivos llegan desde Notion como arreglos de { nombre, url }.
+      // Se aceptan también nombres alternativos para mantener compatibilidad.
+      const normalizeFiles = value => {
+        if (!Array.isArray(value)) return [];
+        return value.map(file => {
+          if (typeof file === 'string') return { nombre: file, url: file };
+          if (!file || typeof file !== 'object') return null;
+          return {
+            nombre: file.nombre || file.name || 'Archivo',
+            url: file.url || file.file?.url || file.external?.url || ''
+          };
+        }).filter(file => file && /^https?:\/\//i.test(String(file.url || '')));
+      };
+      const fileGroups = [
+        ['Propuesta / Negociación', normalizeFiles(item.archivos || item.propuestaNegociacion || item.propuesta_negociacion)],
+        ['Presentación', normalizeFiles(item.presentacion || item.presentación)],
+        ['Carta Negociación', normalizeFiles(item.cartaNegociacion || item.carta_negociacion)]
+      ].filter(([,files]) => files.length);
+      const filesHtml = fileGroups.length
+        ? `<div class="seguimiento-ficha-files"><div class="seguimiento-ficha-files-title">Archivos adjuntos</div>${fileGroups.map(([label,files]) => files.map(file => `<a class="seguimiento-ficha-file" href="${escapeHtml(file.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(label + ': ' + file.nombre)}"><span>↗ ${escapeHtml(label)} · ${escapeHtml(file.nombre)}</span></a>`).join('')).join('')}</div>`
+        : '';
+      const seguimientoId = String(item.id || '');
+      const formId = `seguimientoEdit_${seguimientoId.replace(/[^a-zA-Z0-9]/g,'')}`;
+      const safeVal = key => escapeHtml(item[key] ?? '');
+      const editButton = seguimientoId ? `<div class="seguimiento-ficha-actions"><button type="button" class="seguimiento-edit-btn" data-edit-seguimiento="${escapeHtml(seguimientoId)}">✏️ Editar seguimiento</button></div>
+        <form class="seguimiento-inline-editor" data-seguimiento-form="${escapeHtml(seguimientoId)}" style="display:none">
+          <div><label>Tipo de contacto</label><input name="tipo" value="${safeVal('tipo')}"></div>
+          <div><label>Fecha del seguimiento</label><input name="fecha" type="date" value="${safeVal('fecha')}"></div>
+          <div class="full"><label>Actividad</label><input name="actividad" value="${safeVal('actividad')}"></div>
+          <div class="full"><label>Resultado</label><textarea name="resultado">${safeVal('resultado')}</textarea></div>
+          <div class="full"><label>Próxima acción</label><textarea name="proximaAccion">${safeVal('proximaAccion')}</textarea></div>
+          <div><label>Próximo contacto</label><input name="proximoContacto" type="date" value="${safeVal('proximoContacto')}"></div>
+          <div><label>Estatus</label><select name="completado"><option value="false" ${item.completado ? '' : 'selected'}>Pendiente</option><option value="true" ${item.completado ? 'selected' : ''}>Completado</option></select></div>
+          <div class="full seguimiento-upload-group"><label>Agregar Propuesta / Negociación</label><input type="file" name="file_propuesta" multiple></div>
+          <div class="full seguimiento-upload-group"><label>Agregar Presentación</label><input type="file" name="file_presentacion" multiple></div>
+          <div class="full seguimiento-upload-group"><label>Agregar Carta Negociación</label><input type="file" name="file_carta" multiple></div>
+          <div class="full seguimiento-upload-note">Puedes seleccionar varios archivos. Los documentos nuevos se agregan a los adjuntos existentes.</div>
+          <div class="seguimiento-inline-status" aria-live="polite"></div>
+          <div class="seguimiento-inline-actions"><button type="button" class="cliente-cancel-btn" data-cancel-seguimiento>Cancelar</button><button type="submit" class="cliente-save-btn">Guardar cambios</button></div>
+        </form>` : '';
+      return `<article class="seguimiento-ficha-card"><div class="seguimiento-ficha-head"><span class="seguimiento-ficha-type">${escapeHtml(tipo)}</span><span class="seguimiento-ficha-date">${escapeHtml(fecha)}</span></div>${fields ? `<div class="seguimiento-ficha-grid">${fields}</div>` : '<div class="seguimiento-ficha-empty">Sin detalles adicionales.</div>'}${filesHtml}${editButton}</article>`;
     }).join('')}</div>`;
   }
 
@@ -3192,6 +3253,63 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
         if (Number.isInteger(index) && contactosData[index]) {
           openContactoFicha(contactosData[index]);
         }
+      });
+    });
+
+    const detailGrid = document.getElementById('clienteDetailGrid');
+    detailGrid.querySelectorAll('[data-edit-seguimiento]').forEach(button => {
+      button.addEventListener('click', () => {
+        const form = detailGrid.querySelector(`[data-seguimiento-form="${CSS.escape(button.dataset.editSeguimiento)}"]`);
+        if (form) { form.style.display = 'grid'; button.style.display = 'none'; }
+      });
+    });
+    detailGrid.querySelectorAll('[data-cancel-seguimiento]').forEach(button => {
+      button.addEventListener('click', () => {
+        const form = button.closest('form');
+        if (form) { form.style.display = 'none'; const edit = detailGrid.querySelector(`[data-edit-seguimiento="${CSS.escape(form.dataset.seguimientoForm)}"]`); if (edit) edit.style.display = ''; }
+      });
+    });
+    detailGrid.querySelectorAll('[data-seguimiento-form]').forEach(form => {
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        const save = form.querySelector('button[type="submit"]');
+        const status = form.querySelector('.seguimiento-inline-status');
+        save.disabled = true; status.className = 'seguimiento-inline-status'; status.textContent = 'Guardando…';
+        try {
+          const {data: sessionData, error: sessionError} = await supabaseClient.auth.getSession();
+          if (sessionError || !sessionData.session) throw new Error('Sesión no disponible.');
+          const fd = new FormData(form);
+          const payload = {
+            action: 'updateSeguimiento', id: form.dataset.seguimientoForm,
+            actividad: String(fd.get('actividad') || '').trim(),
+            tipo: String(fd.get('tipo') || '').trim(),
+            fecha: String(fd.get('fecha') || ''),
+            resultado: String(fd.get('resultado') || '').trim(),
+            proximaAccion: String(fd.get('proximaAccion') || '').trim(),
+            proximoContacto: String(fd.get('proximoContacto') || ''),
+            completado: fd.get('completado') === 'true'
+          };
+          const uploadBody = new FormData();
+          uploadBody.append('payload', JSON.stringify(payload));
+          for (const [inputName, fieldName] of [['file_propuesta','file_propuesta'],['file_presentacion','file_presentacion'],['file_carta','file_carta']]) {
+            const input = form.querySelector(`input[name="${inputName}"]`);
+            for (const file of (input?.files || [])) uploadBody.append(fieldName, file, file.name);
+          }
+          const response = await fetch(NOTION_FUNCTION_URL, {method:'POST',headers:{Authorization:`Bearer ${sessionData.session.access_token}`,apikey:SUPABASE_PUBLISHABLE_KEY},body:uploadBody});
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error || 'No fue posible actualizar el seguimiento.');
+          const updated = data.seguimiento || {};
+          const list = clienteSeleccionado.seguimientos || clienteSeleccionado.seguimiento || [];
+          const idx = list.findIndex(x => x.id === payload.id);
+          if (idx >= 0) list[idx] = {...list[idx], ...updated};
+          clienteSeleccionado.seguimientos = list;
+          const refreshed = consultaClientes.find(c => c.id === clienteSeleccionado.id);
+          if (refreshed) { refreshed.seguimientos = list; clienteSeleccionado = refreshed; }
+          await openClienteFicha(clienteSeleccionado);
+        } catch (error) {
+          status.className = 'seguimiento-inline-status error'; status.textContent = error.message || 'Error guardando cambios.';
+          console.error('Error editando seguimiento:', error);
+        } finally { save.disabled = false; }
       });
     });
 
@@ -3805,18 +3923,30 @@ button,.home-card,.back-btn,.logout-btn,.crm-nav-item{font-family:inherit}.modal
   }
 
   function showPortal(user) {
-    currentUser = user || null;
+    // Supabase puede emitir SIGNED_IN, TOKEN_REFRESHED o USER_UPDATED
+    // al recuperar el foco o renovar el token. No debemos reiniciar el CRM
+    // ni mandar al usuario a Inicio si ya estaba trabajando en otra sección.
+    const portalAlreadyOpen =
+      portal.style.display !== 'none' &&
+      authScreen.style.display === 'none';
+
+    currentUser = user || currentUser || null;
     authScreen.style.display = 'none';
     portal.style.display = 'block';
     updateSidebarUser(currentUser);
-    markActivity();
-    startInactivityTimer();
+
+    if (!portalAlreadyOpen) {
+      // Solo inicializar Inicio y el temporizador al entrar realmente
+      // al portal (primer login o restauración después de recargar la página).
+      markActivity();
+      startInactivityTimer();
+      showView('home');
+      refreshGoogleCalendarStatus();
+    }
+
     if (KEEP_MOBILE_APP_SESSION && sessionNote) {
       sessionNote.textContent = 'Sesión persistente en la app móvil.';
     }
-    showView('home');
-    // Se consulta cada vez que se abre el CRM o se restaura una sesión.
-    refreshGoogleCalendarStatus();
   }
 
   function markActivity() {
