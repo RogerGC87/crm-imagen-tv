@@ -334,8 +334,18 @@ function renderWeekly(){
    }
  });
  if(unitChart)unitChart.destroy();
- const unitRows=ytdDetail;
- const unitTotals=unitRows.reduce((a,x)=>{a.descarga2026+=x.real2026||0;a.presupuesto2026+=x.presupuesto2026||0;return a;},{descarga2026:0,presupuesto2026:0});
+ // La descarga real semanal se toma del detalle; el presupuesto Nacional
+ // se calcula desde weeklyByDirector porque weeklyDetail no trae el presupuesto
+ // desglosado por anunciante para Nacional.
+ const unitTotals=ytdDetail.reduce((a,x)=>{
+   a.descarga2026+=Number(x.real2026)||0;
+   if(x['Unidad de negocio']!=='Nacional')a.presupuesto2026+=Number(x.presupuesto2026)||0;
+   return a;
+ },{descarga2026:0,presupuesto2026:0});
+ if(units.includes('Nacional')){
+   const nationalBudget=nationalHistorical(selected==='Todos'?'Todos':selected,'presupuesto2026');
+   unitTotals.presupuesto2026+=nationalBudget;
+ }
  const unitLabel=units.length===1?units[0]:(units.length===0?'Sin unidades':'Total unidades seleccionadas');
  unitChart=new Chart(document.getElementById('unitChart'),{type:'bar',data:{labels:[unitLabel],datasets:[{label:'Descarga 2026',data:[unitTotals.descarga2026],backgroundColor:'#8aa5c4'},{label:'Presupuesto 2026',data:[unitTotals.presupuesto2026],backgroundColor:'#f15a24'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{
  legend:{position:'bottom',align:'center',labels:{boxWidth:18,boxHeight:12,padding:8,font:{size:11}}},
