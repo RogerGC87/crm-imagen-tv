@@ -234,7 +234,7 @@ function renderWeekly(){
  const nationalOnly=units.length===1&&units[0]==='Nacional';
  const weeklySource=DATA.weeklyByDirector||{};
  const sumWeekly=(series,field)=>(series||[])
-   .filter(w=>Number(String(w.semana||'').replace(/\\D/g,''))<=cutoffWeek)
+   .filter(w=>Number(String(w.semana||'').replace(/\D/g,''))<=cutoffWeek)
    .reduce((acc,w)=>acc+(Number(w[field])||0),0);
  if(nationalOnly){
    Object.values(grouped).forEach(r=>{
