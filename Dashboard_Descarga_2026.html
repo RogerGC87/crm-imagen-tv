@@ -229,20 +229,33 @@ function renderWeekly(){
    grouped[x.Director].descarga2026+=Number(x.real2026)||0;
  });
 
- // En Nacional, 2025 y Presupuesto se leen de weeklyByDirector,
- // la misma fuente que alimenta correctamente la gráfica semanal.
+ // La serie weeklyByDirector conserva el histórico de todas las unidades.
+ // Para obtener Nacional, se descuentan Digital y Local usando weeklyDetail.
  const nationalOnly=units.length===1&&units[0]==='Nacional';
  const weeklySource=DATA.weeklyByDirector||{};
  const sumWeekly=(series,field)=>(series||[])
-   .filter(w=>Number(String(w.semana||'').replace(/\D/g,''))<=cutoffWeek)
+   .filter(w=>Number(String(w.semana||'').replace(/\\D/g,''))<=cutoffWeek)
    .reduce((acc,w)=>acc+(Number(w[field])||0),0);
+ const nonNationalByDirector={};
+ ytdDetail.filter(x=>x['Unidad de negocio']!=='Nacional').forEach(x=>{
+   const dir=x.Director||'';
+   if(!nonNationalByDirector[dir])nonNationalByDirector[dir]={real2025:0,presupuesto2026:0};
+   nonNationalByDirector[dir].real2025+=Number(x.real2025)||0;
+   nonNationalByDirector[dir].presupuesto2026+=Number(x.presupuesto2026)||0;
+ });
+ const nationalHistorical=(director,field)=>{
+   const series=weeklySource[director]||[];
+   const gross=sumWeekly(series,field);
+   if(director==='Todos'){
+     const other=Object.values(nonNationalByDirector).reduce((a,v)=>a+(v[field]||0),0);
+     return Math.max(0,gross-other);
+   }
+   return Math.max(0,gross-((nonNationalByDirector[director]||{})[field]||0));
+ };
  if(nationalOnly){
    Object.values(grouped).forEach(r=>{
-     const series=weeklySource[r.Director];
-     if(series){
-       r.descarga2025=sumWeekly(series,'real2025');
-       r.presupuesto2026=sumWeekly(series,'presupuesto2026');
-     }
+     r.descarga2025=nationalHistorical(r.Director,'real2025');
+     r.presupuesto2026=nationalHistorical(r.Director,'presupuesto2026');
    });
  }
  let rows=Object.values(grouped).map(r=>({...r,variacion:r.descarga2026-r.descarga2025,cumplimiento:r.presupuesto2026?r.descarga2026/r.presupuesto2026:0}));
@@ -252,8 +265,8 @@ function renderWeekly(){
    return a;
  },{a:0,b:0,c:0});
  if(nationalOnly&&selected==='Todos'&&weeklySource.Todos){
-   totals.a=sumWeekly(weeklySource.Todos,'real2025');
-   totals.b=sumWeekly(weeklySource.Todos,'presupuesto2026');
+   totals.a=nationalHistorical('Todos','real2025');
+   totals.b=nationalHistorical('Todos','presupuesto2026');
  }
  document.getElementById('k2025').textContent=money(totals.a);
  document.getElementById('kbudget').textContent=money(totals.b);
@@ -282,7 +295,7 @@ function renderWeekly(){
      const gva=g.descarga2026-g.presupuesto2026;
      const gpctAnterior=g.descarga2025?gv/g.descarga2025:0;
      const gpctPpto=g.presupuesto2026?(g.descarga2026/g.presupuesto2026)-1:0;
-     return `<tr class="manager-row" data-parent="${r.Director}" ${isOpen?'':'hidden'}><td><span class="manager-label">↳ ${g.Gerente}</span></td><td>${g.descarga2025?money(g.descarga2025):'—'}</td><td>${g.presupuesto2026?money(g.presupuesto2026):'—'}</td><td>${money(g.descarga2026)}</td><td class="${gv>=0?'pos':'neg'}">${money(gv)}</td><td class="${gpctAnterior>=0?'pos':'neg'}">${pct(gpctAnterior)}</td><td class="${gva>=0?'pos':'neg'}">${money(gva)}</td><td class="${gpctPpto>=0?'pos':'neg'}">${pct(gpctPpto)}</td></tr>`;
+     return `<tr class="manager-row" data-parent="${r.Director}" ${isOpen?'':'hidden'}><td><span class="manager-label">↳ ${g.Gerente}</span></td><td>${nationalOnly?'—':(g.descarga2025?money(g.descarga2025):'—')}</td><td>${nationalOnly?'—':(g.presupuesto2026?money(g.presupuesto2026):'—')}</td><td>${money(g.descarga2026)}</td><td class="${gv>=0?'pos':'neg'}">${money(gv)}</td><td class="${gpctAnterior>=0?'pos':'neg'}">${pct(gpctAnterior)}</td><td class="${gva>=0?'pos':'neg'}">${money(gva)}</td><td class="${gpctPpto>=0?'pos':'neg'}">${pct(gpctPpto)}</td></tr>`;
    }).join('');
    return directorHtml+children;
  }).join('');
