@@ -234,10 +234,10 @@ function renderWeekly(){
  const nationalOnly=units.length===1&&units[0]==='Nacional';
  const weeklySource=DATA.weeklyByDirector||{};
  const sumWeekly=(series,field)=>(series||[])
-   .filter(w=>Number(String(w.semana||'').replace(/\\D/g,''))<=cutoffWeek)
+   .filter(w=>Number(String(w.semana||'').replace(/\D/g,''))<=cutoffWeek)
    .reduce((acc,w)=>acc+(Number(w[field])||0),0);
  const nonNationalByDirector={};
- ytdDetail.filter(x=>x['Unidad de negocio']!=='Nacional').forEach(x=>{
+ (DATA.weeklyDetail||[]).filter(x=>Number(x.week)<=cutoffWeek&&x['Unidad de negocio']!=='Nacional').forEach(x=>{
    const dir=x.Director||'';
    if(!nonNationalByDirector[dir])nonNationalByDirector[dir]={real2025:0,presupuesto2026:0};
    nonNationalByDirector[dir].real2025+=Number(x.real2025)||0;
